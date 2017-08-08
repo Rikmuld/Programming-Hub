@@ -10,7 +10,14 @@ class User extends Table<Tables.User> {
     addToGroup(s: string, g: string, updateGroup: boolean, admin: boolean): Future<Tables.User> {
         return this.updateOne(s, (a: Tables.User) => {
             const ids = Users.groupIDs(a)
-            if (ids.toArray().indexOf(g) == -1) a.groups.push({ group: g, files: [] })
+            const index = ids.toArray().indexOf(g) 
+            if (index == -1) a.groups.push({ group: g, files: [], active: true })
+            else if(!a.groups[index].active) {
+                console.log("this must equal")
+                console.log(g)
+                console.log(a.groups[index].group)
+                a.groups[index].active = true
+            }
         }).flatMap(a => {
             if (updateGroup) return Groups.instance.addUser(g, s, admin, false).map(u => a)
             else return Future.unit(a)
@@ -19,9 +26,9 @@ class User extends Table<Tables.User> {
 
     removeFromGroup(s: string, g: string, updateGroup: boolean, admin: boolean): Future<Tables.User> {
         return this.updateOne(s, (a: Tables.User) => {
-            const ids = Users.groupIDs(a)
+            const ids = Users.activeGroupIDs(a)
             const index = ids.toArray().indexOf(g.toString())
-            if (index >= 0) a.groups.splice(index, 1)
+            if (index >= 0) a.groups[index].active = false
         }).flatMap(a => {
             if (updateGroup) return Groups.instance.removeUser(g, s, admin, false).map(u => a)
             else return Future.unit(a)
@@ -30,7 +37,7 @@ class User extends Table<Tables.User> {
 
     getGroups(s: string): Future<Tables.Group[]> {
         return this.exec(this.getByID(s)).flatMap(u =>
-            Groups.instance.exec(Groups.instance.getByIDs(Users.groupIDs(u).toArray()).sort({ end: 1 }), false))
+            Groups.instance.exec(Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: 1 }), false))
     }
 
     addFile(students: string[], group: string, file: string): Future<Tables.User[]> {
@@ -86,6 +93,10 @@ export namespace Users {
 
     export function groupIDs(user: Tables.User): List<string> {
         return List.apply(user.groups).map(groupData => groupData.group as string)
+    }
+
+    export function activeGroupIDs(user: Tables.User): List<string> {
+        return List.apply(user.groups).filter(g => g.active).map(groupData => groupData.group as string)
     }
 
     export function sortByName(query: Users.Query): Users.Query {

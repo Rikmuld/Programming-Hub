@@ -22,36 +22,36 @@ block content
         else
             h2 #{student.name} #{student.surename} (#{student._id})
             
-        if group.assignments.length == 0
-            h2 Assignments
-            p The student did not hand in any assignments yet!
-        
-        else
-            h3 Assignments
+            if group.assignments.length == 0
+                h2 Assignments
+                p The student did not hand in any assignments yet!
+            
+            else
+                h3 Assignments
+                .row
+                    for file in files
+                        - var ass = file.assignment
+                        if ass
+                            +flipper()(class="group")
+                                +front-card()
+                                    if ass.typ == "open" || ass.due > file.timestamp
+                                        .assignmentStateBulb.back-done
+                                    else
+                                        .assignmentStateBulb.back-late
+                                    if file.feedback.length == 0
+                                        .assignmentStateFeedback.back-normal
+                                    else 
+                                        .assignmentStateFeedback.back-done
+                                    .yAlign
+                                        h3.special= ass.name
+                                        h4#subheadersmall= file.name
+                                        +timeline(group.start, group.end, file.timestamp)(class="hidden")
+                                +back-card()
+                                    +card-icons() 
+                                        .bottom-icons
+                                            +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
+                                            if ass.link.length > 0
+                                                +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
+            hr
             .row
-                for file in files
-                    - var ass = file.assignment
-                    if ass
-                        +flipper()(class="group")
-                            +front-card()
-                                if ass.typ == "open" || ass.due > file.timestamp
-                                    .assignmentStateBulb.back-done
-                                else
-                                    .assignmentStateBulb.back-late
-                                if file.feedback.length == 0
-                                    .assignmentStateFeedback.back-normal
-                                else 
-                                    .assignmentStateFeedback.back-done
-                                .yAlign
-                                    h3.special= ass.name
-                                    h4#subheadersmall= file.name
-                                    +timeline(group.start, group.end, file.timestamp)(class="hidden")
-                            +back-card()
-                                +card-icons() 
-                                    .bottom-icons
-                                        +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
-                                        if ass.link.length > 0
-                                            +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
-        hr
-        .row
-            +cardLink-a("../../" + group.id, "Back to Course")
+                +cardLink-a("../../" + group.id, "Back to Course")

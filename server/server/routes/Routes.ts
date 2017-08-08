@@ -100,9 +100,11 @@ export namespace Routes {
     }
 
     function group(req: Req, res: Res) {
-        const group = req.url.split("/")[2]
+        const data = req.url.split("/")
+        const group = data[2]
 
         if (!req.user) res.redirect("/")
+        else if(data.length > 3) res.redirect("/group/" + group) 
         else Groups.getGroup(group).then(g => {
             Files.forStudentInGroup(req.user.id, group).then(user => Render.withUser(req, res, "group/overview", { group: g, fullUser: user }),
                 e => Render.error(req, res, e.toString()))

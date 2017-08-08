@@ -75,14 +75,13 @@ block content
             +cardLink("Download all Files")
             if user.admin
                 +cardLink("Update Feedback")(data-toggle="modal" data-target="#feedbackModal")
-                if file.assignment
-                    +cardLink("Feedback Next Hand-in")
                 - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")
                 +cardLink-a("mailto:" + mailStudents, "Mail Students")
-                if file.assignment
-                    if file.assignment.group
-                        +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
+                if file.assignment && file.assignment.group
+                    +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
                     +cardLink-a("/group/" + file.assignment.group._id + "/assignment/" + file.assignment._id, "Go to Assignment")
+                    +cardLink-a("/group/" + file.assignment.group._id + "/feedback", "Go to Feedback List")
+                    +cardLink-a("/group/" + file.assignment.group._id + "/feedback/latest", "Feedback Next Hand-in")
             else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
                 +cardLink("Edit Comments")
                 if file.assignment && file.assignment.group

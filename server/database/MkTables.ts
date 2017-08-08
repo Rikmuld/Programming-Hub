@@ -10,7 +10,8 @@ export namespace MkTables {
             files: {
                 final: boolean,
                 file: string | FileTemplate
-            }[]
+            }[],
+            active: boolean
         }[],
         admin: boolean
     }

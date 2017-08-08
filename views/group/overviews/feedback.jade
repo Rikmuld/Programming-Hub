@@ -13,41 +13,44 @@ block append styles
 block headerTitle
     h1
         a(href="/group/" + group._id)= group.name
-    h2#subheader Feedback List
+    h2#subheader To-Feedback List
 
 block content
     .container
-        h1 Hand-ins
-        - var allFiles = []
-        for assignment in group.assignments
-            - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
-        - allFiles.sort((a, b) => { a.timestamp - b.timestamp })
-        .row
-            for file in allFiles
-                - var assignment = group.assignments.find(a => a._id == file.assignment)
-                +flipper()(class="group")
-                    +front-card() 
-                        if assignment.typ == "open" || assignment.due > file.timestamp
-                            .assignmentStateBulb.back-done
-                        else
-                            .assignmentStateBulb.back-late
-                        if file.feedback.length == 0
-                            .assignmentStateFeedback.back-normal
-                        else 
-                            .assignmentStateFeedback.back-done
-                        .yAlign
-                            h3.special= assignment.name
-                            h4#subheadersmall
-                                span #{file.students[0].name} #{file.students[0].surename} 
-                                - var done = file.students[0]._id
-                                for student in file.students
-                                    if student._id != done
-                                        span / #{student.name} #{student.surename} 
-                            +timeline(group.start, group.end, file.timestamp)(class="hidden")
-                    +back-card()
-                        +card-icons() 
-                            .bottom-icons
-                                +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
-        hr
-        .row
-            +cardLink-a("../" + group.id, "Back to Course")
+        if !user.admin
+            p You do not have sufficient rights to view this page!
+        else
+            h1 Hand-ins
+            - var allFiles = []
+            for assignment in group.assignments
+                - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
+            - allFiles.sort((a, b) => { return a.timestamp - b.timestamp })
+            .row
+                for file in allFiles
+                    - var assignment = group.assignments.find(a => a._id == file.assignment)
+                    +flipper()(class="group")
+                        +front-card() 
+                            if assignment.typ == "open" || assignment.due > file.timestamp
+                                .assignmentStateBulb.back-done
+                            else
+                                .assignmentStateBulb.back-late
+                            if file.feedback.length == 0
+                                .assignmentStateFeedback.back-normal
+                            else 
+                                .assignmentStateFeedback.back-done
+                            .yAlign
+                                h3.special= assignment.name
+                                h4#subheadersmall
+                                    span #{file.students[0].name} #{file.students[0].surename} 
+                                    - var done = file.students[0]._id
+                                    for student in file.students
+                                        if student._id != done
+                                            span / #{student.name} #{student.surename} 
+                                +timeline(group.start, group.end, file.timestamp)(class="hidden")
+                        +back-card()
+                            +card-icons() 
+                                .bottom-icons
+                                    +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
+            hr
+            .row
+                +cardLink-a("../" + group.id, "Back to Course")

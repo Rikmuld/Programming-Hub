@@ -78,7 +78,8 @@ var Tables;
                 files: [{
                         final: Boolean,
                         file: refrence("File")
-                    }]
+                    }],
+                active: { type: Boolean, default: true }
             }],
         admin: Boolean
     });

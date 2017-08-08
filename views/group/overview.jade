@@ -149,6 +149,7 @@ block content
             if user.admin
                 +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
                 +cardLink-a(group.id + "/feedback", "To-Feedback List")
+                +cardLink-a(group._id + "/feedback/latest", "Feedback Latest Hand-in")
                 +cardLink-a(group.id + "/results", "View all Results")
             else
                 +cardLink("Generate Overview")

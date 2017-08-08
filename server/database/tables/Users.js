@@ -10,8 +10,15 @@ class User extends Table_1.Table {
     addToGroup(s, g, updateGroup, admin) {
         return this.updateOne(s, (a) => {
             const ids = Users.groupIDs(a);
-            if (ids.toArray().indexOf(g) == -1)
-                a.groups.push({ group: g, files: [] });
+            const index = ids.toArray().indexOf(g);
+            if (index == -1)
+                a.groups.push({ group: g, files: [], active: true });
+            else if (!a.groups[index].active) {
+                console.log("this must equal");
+                console.log(g);
+                console.log(a.groups[index].group);
+                a.groups[index].active = true;
+            }
         }).flatMap(a => {
             if (updateGroup)
                 return Groups_1.Groups.instance.addUser(g, s, admin, false).map(u => a);
@@ -21,10 +28,10 @@ class User extends Table_1.Table {
     }
     removeFromGroup(s, g, updateGroup, admin) {
         return this.updateOne(s, (a) => {
-            const ids = Users.groupIDs(a);
+            const ids = Users.activeGroupIDs(a);
             const index = ids.toArray().indexOf(g.toString());
             if (index >= 0)
-                a.groups.splice(index, 1);
+                a.groups[index].active = false;
         }).flatMap(a => {
             if (updateGroup)
                 return Groups_1.Groups.instance.removeUser(g, s, admin, false).map(u => a);
@@ -33,7 +40,7 @@ class User extends Table_1.Table {
         });
     }
     getGroups(s) {
-        return this.exec(this.getByID(s)).flatMap(u => Groups_1.Groups.instance.exec(Groups_1.Groups.instance.getByIDs(Users.groupIDs(u).toArray()).sort({ end: 1 }), false));
+        return this.exec(this.getByID(s)).flatMap(u => Groups_1.Groups.instance.exec(Groups_1.Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: 1 }), false));
     }
     addFile(students, group, file) {
         return this.update(students, user => {
@@ -63,6 +70,10 @@ var Users;
         return List_1.List.apply(user.groups).map(groupData => groupData.group);
     }
     Users.groupIDs = groupIDs;
+    function activeGroupIDs(user) {
+        return List_1.List.apply(user.groups).filter(g => g.active).map(groupData => groupData.group);
+    }
+    Users.activeGroupIDs = activeGroupIDs;
     function sortByName(query) {
         return query.sort({ name: 1, surename: 1 });
     }

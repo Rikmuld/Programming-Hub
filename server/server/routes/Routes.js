@@ -75,9 +75,12 @@ var Routes;
             Render_1.Render.withUser(req, res, "hub");
     }
     function group(req, res) {
-        const group = req.url.split("/")[2];
+        const data = req.url.split("/");
+        const group = data[2];
         if (!req.user)
             res.redirect("/");
+        else if (data.length > 3)
+            res.redirect("/group/" + group);
         else
             Groups_1.Groups.getGroup(group).then(g => {
                 Files_1.Files.forStudentInGroup(req.user.id, group).then(user => Render_1.Render.withUser(req, res, "group/overview", { group: g, fullUser: user }), e => Render_1.Render.error(req, res, e.toString()));
