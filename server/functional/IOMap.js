@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Future_1 = require("./Future");
 const Tuple_1 = require("./Tuple");
 const List_1 = require("./List");

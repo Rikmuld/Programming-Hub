@@ -1,16 +1,17 @@
 "use strict";
-const Users_1 = require('../database/tables/Users');
-const Config_1 = require('./Config');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Users_1 = require("../database/tables/Users");
+const Config_1 = require("./Config");
 const express = require("express");
-const path = require('path');
-const stylus = require('stylus');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const passport = require('passport');
+const path = require("path");
+const stylus = require("stylus");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const session = require("express-session");
+const passport = require("passport");
 const redis = require("redis");
 const redisConnect = require("connect-redis");
-const azure = require('azure-storage');
+const azure = require("azure-storage");
 const authGoogle = require('passport-google-oauth2');
 const busboy = require('connect-busboy');
 const useRedis = Config_1.Config.session.redis;
@@ -72,6 +73,7 @@ var Setup;
         };
         const handleLogin = (request, accessToken, refreshToken, profile, done) => {
             process.nextTick(() => {
+                //create sign up with email for teachers
                 if (profile._json.domain == "student.utwente.nl" || profile.email == "ruudvandamme55@gmail.com" || profile.email == "rikmuld@gmail.com") {
                     Users_1.Users.getByGProfile(profile).then(u => done(null, Users_1.Users.simplify(u)), e => done(null, null));
                 }

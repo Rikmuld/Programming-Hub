@@ -52,6 +52,7 @@ class Dict {
         return collection;
     }
 }
+//this way values are calculated way to often, just lazy and reset when renew
 class Field {
     constructor(id, name, jq, value) {
         this.id = id;

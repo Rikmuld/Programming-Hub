@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class Future extends Promise {
     flatMap(f) {
         return new Future((resolve, reject) => {

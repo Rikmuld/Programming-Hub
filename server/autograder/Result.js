@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const List_1 = require("../functional/List");
 class Result {
     constructor(tests) {
@@ -31,8 +32,8 @@ class Test {
 }
 exports.Test = Test;
 class Success extends Test {
-    constructor(...args) {
-        super(...args);
+    constructor() {
+        super(...arguments);
         this.success = true;
     }
     toJSON() {

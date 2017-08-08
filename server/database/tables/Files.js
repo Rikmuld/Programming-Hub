@@ -1,8 +1,9 @@
 "use strict";
-const Table_1 = require('../Table');
-const Assignments_1 = require('./Assignments');
-const Groups_1 = require('./Groups');
-const Users_1 = require('./Users');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Table_1 = require("../Table");
+const Assignments_1 = require("./Assignments");
+const Groups_1 = require("./Groups");
+const Users_1 = require("./Users");
 class File extends Table_1.Table {
     create(a) {
         return super.create(a).flatMap(file => {

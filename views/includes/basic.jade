@@ -75,3 +75,6 @@ mixin flip-table-icon(icon)
 mixin flip-table-a(href, icon)
     a(href=href type="button" class="btn btn-card-table")&attributes(attributes)
         span(class="glyphicon glyphicon-" + icon aria-hidden="true")
+
+mixin flip-table-socket(id, data, icon)
+    +flip-table-icon(icon)(socketID=id, socketData=data, class="socketSender")&attributes(attributes)

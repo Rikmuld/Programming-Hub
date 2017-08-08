@@ -1,7 +1,8 @@
 "use strict";
-const Table_1 = require('../Table');
-const Groups_1 = require('./Groups');
-const Future_1 = require('../../functional/Future');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Table_1 = require("../Table");
+const Groups_1 = require("./Groups");
+const Future_1 = require("../../functional/Future");
 class Assignment extends Table_1.Table {
     addFile(assignment, file) {
         return this.updateOne(assignment, s => {

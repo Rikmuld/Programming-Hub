@@ -1,7 +1,9 @@
 "use strict";
-const Projects_1 = require('../Projects');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Projects_1 = require("../Projects");
 const Runners_1 = require("../Runners");
 const Tuple_1 = require("../../functional/Tuple");
+//generalize in Project -> expectedStr test -> takes a build (printBottles)
 var GreenBottles;
 (function (GreenBottles) {
     function init() {
@@ -12,6 +14,7 @@ var GreenBottles;
         return new Projects_1.Project(runner, test, input);
     }
     GreenBottles.init = init;
+    //generalize (also better to return option, or either not tuple)
     function validate(inn, out) {
         const input = parseInt(inn);
         const builded = printBottles(input);

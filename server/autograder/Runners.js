@@ -1,9 +1,10 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Future_1 = require("../functional/Future");
 const List_1 = require("../functional/List");
 const Either_1 = require("../functional/Either");
-const Config_1 = require('../server/Config');
-const process = require('child_process');
+const Config_1 = require("../server/Config");
+const process = require("child_process");
 const BREAK = Config_1.Config.grader.break;
 var Input;
 (function (Input) {
@@ -42,6 +43,7 @@ var Output;
         return out.add(data.replace(/\r?\n|\r/g, ""));
     }
     Output.listOut = listOut;
+    //NOTE output might need to be reversed, so List.apply ..... append out, also create a multiIOasList    
     function breakToList(out, data, stdin) {
         return out.append(List_1.List.apply(data.split(/\r?\n|\r/)));
     }
@@ -78,6 +80,7 @@ var Runners;
             py.stdin.on('error', function (err) {
                 inputError = err;
             });
+            //check if possible as inline
             function isRunning() {
                 return running;
             }
@@ -103,6 +106,7 @@ var Runners;
         PythonRunners.simpleIOasList = pythonSpawner(List_1.List.apply([]), Output.breakToList, Input.simpleIn);
         PythonRunners.sleepIO = pythonSpawner(List_1.List.apply([]), Output.listOut, Input.withDelay);
     })(PythonRunners = Runners.PythonRunners || (Runners.PythonRunners = {}));
+    //also in miniprojects, so put in some math module, or str module etc..
     function getFirstNumber(s, z) {
         const reg = /^\D*(\d+(?:\.\d+)?)/g;
         const match = reg.exec(s);

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const AutoGrader_1 = require("./AutoGrader");
 const List_1 = require("../functional/List");
 const Tuple_1 = require("../functional/Tuple");
@@ -45,6 +46,7 @@ var DataHelper;
         return List_1.List.apply(a).map(f);
     }
     DataHelper.dataMap = dataMap;
+    //make something more modular, scalable
     function rndList(seed, size, ...a) {
         return rnd(Pools.list(a), seed, a.length, 0, size);
     }

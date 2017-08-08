@@ -34,6 +34,9 @@ $(document).ready(() => {
     assignmentUpdate.addValidation(ifTypeDefined);
     const removeAssignment = new ModalFormValidator("#removeAssignment", "removeAssignment", "assignmentRemoved", true);
     removeAssignment.registerField("assignment", "assignment id", "#removeAssignmentName", ModalValues.attr("assignment"));
+    const removeUser = new ModalFormValidator("#removeUser", "removeUser", "userRemoved", true);
+    removeUser.addValues(getGroupId(), false);
+    removeUser.registerField("user", "user id", "#removeUserName", ModalValues.attr("user"));
     const addUsers = new ModalFormValidator("#addUsers", "addUsers", "usersAdded");
     addUsers.addValues(getGroupId());
     addUsers.registerField("users", "users", "#allUserList", getSelected);

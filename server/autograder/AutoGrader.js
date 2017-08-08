@@ -1,6 +1,8 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Result_1 = require("./Result");
 const IOMap_1 = require("../functional/IOMap");
+//just handy function for IOMap where final A instanceof Result and for some the input A is Either with output/error
 var AutoChecker;
 (function (AutoChecker) {
     function foldLeft(a, f) {

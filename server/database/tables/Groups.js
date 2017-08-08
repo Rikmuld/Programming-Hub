@@ -1,11 +1,12 @@
 "use strict";
-const Table_1 = require('../Table');
-const Users_1 = require('./Users');
-const Assignments_1 = require('./Assignments');
-const List_1 = require('../../functional/List');
-const Tuple_1 = require('../../functional/Tuple');
-const Future_1 = require('../../functional/Future');
-const IOMap_1 = require('../../functional/IOMap');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Table_1 = require("../Table");
+const Users_1 = require("./Users");
+const Assignments_1 = require("./Assignments");
+const List_1 = require("../../functional/List");
+const Tuple_1 = require("../../functional/Tuple");
+const Future_1 = require("../../functional/Future");
+const IOMap_1 = require("../../functional/IOMap");
 class Group extends Table_1.Table {
     create(g) {
         return super.create(g).flatMap(group => {
@@ -91,10 +92,10 @@ class Group extends Table_1.Table {
         return query.populate(pop);
     }
     populateStudents(query) {
-        return this.populateUserType(query, "students");
+        return this.populateUserType(query, "students"); //only return name and surename, not all
     }
     populateAdmins(query) {
-        return this.populateUserType(query, "admins");
+        return this.populateUserType(query, "admins"); //only return name and surename, not all
     }
     populateUsers(query) {
         return this.populateStudents(this.populateAdmins(query));

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class Tuple {
     constructor(a, b) {
         this._1 = a;

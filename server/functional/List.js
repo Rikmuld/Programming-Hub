@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Tuple_1 = require("./Tuple");
 class List {
     match(ifn, ifl) {
@@ -121,6 +122,7 @@ exports.Cons = Cons;
         return l.foldLeft(0, (acc, a) => acc + a);
     }
     List.sum = sum;
+    //wrong, use below!
     function range(n, from = 0) {
         const go = (left, acc = new Empty) => {
             return left == 0 ? acc : go(left - 1, new Cons(from - n + left, acc));
@@ -139,6 +141,7 @@ exports.Cons = Cons;
         return lla.foldRight(apply([]), (la, acc_la) => acc_la.append(la));
     }
     List.concat = concat;
+    //reame to foreach
     function forall(la, f) {
         la.foldLeft(null, (none, a) => f(a));
     }

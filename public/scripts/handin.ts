@@ -1,19 +1,6 @@
 ﻿$(document).ready(() => {
-    socket.on('feedbacked', feedbacked)
+    const modCreate = new ModalFormValidator("#feedbackModal", "updateFeedback", "feedbacked")
+
+    modCreate.addValues($("#thefile").attr("fileId"))
+    modCreate.registerField("feedback", "feedback", "#feedback", ModalValues.value)
 })
-
-function handin(file: string) {
-    const feedback = $("#feedback").val()
-    socket.emit("updateFeedback", file, feedback)
-}
-
-function feedbacked(success: boolean, error: string) {
-    if (success) location.reload()
-    else {
-        $("#errorContainer").removeClass("hidden")
-        $("#errors").html("")
-        const li = document.createElement("li")
-        li.innerText = error
-        $("#errors").append(li)
-    }
-}

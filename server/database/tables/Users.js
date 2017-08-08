@@ -1,10 +1,11 @@
 "use strict";
-const Table_1 = require('../Table');
-const MkTables_1 = require('../MkTables');
-const Groups_1 = require('./Groups');
-const Files_1 = require('./Files');
-const Future_1 = require('../../functional/Future');
-const List_1 = require('../../functional/List');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Table_1 = require("../Table");
+const MkTables_1 = require("../MkTables");
+const Groups_1 = require("./Groups");
+const Files_1 = require("./Files");
+const Future_1 = require("../../functional/Future");
+const List_1 = require("../../functional/List");
 class User extends Table_1.Table {
     addToGroup(s, g, updateGroup, admin) {
         return this.updateOne(s, (a) => {

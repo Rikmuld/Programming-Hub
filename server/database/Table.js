@@ -1,8 +1,10 @@
 "use strict";
-const mongoose = require('mongoose');
-const List_1 = require('../functional/List');
-const Future_1 = require('../functional/Future');
-const IOMap_1 = require('../functional/IOMap');
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose = require("mongoose");
+const List_1 = require("../functional/List");
+const Future_1 = require("../functional/Future");
+const IOMap_1 = require("../functional/IOMap");
+//change all to use promise no callback
 class Table {
     constructor(m) {
         this.model = m;

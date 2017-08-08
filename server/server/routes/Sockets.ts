@@ -29,6 +29,7 @@ export namespace Sockets {
     type UpdateAssignment = (assignment: string, group: string, name: string, type: string, due: Date, link: string) => void
     type FeedbackCall = (file:string, feedback: string) => void
     type FinalCall = (accept: boolean, group:string, file:string) => void
+    type RemoveUserCall = (group: string, isAdmin: boolean, user: string) => void
 
     const ON_CONNECTION = "connection"
     const ON_CREATE_COURSE = "createCourse"
@@ -41,6 +42,7 @@ export namespace Sockets {
     const ON_UPLOAD_FILES = "uploadFiles"
     const ON_FEEDBACK = "updateFeedback"
     const ON_SET_FINAL = "manageFinal"
+    const ON_REMOVE_USER = "removeUser"
     const ON_UPDATE_COURSE = "updateCourse"
 
     const RESULT_CREATE_COURSE = "courseCreated"
@@ -54,6 +56,7 @@ export namespace Sockets {
     const RESULT_FEEDBACK = "feedbacked"
     const RESULT_FINAL = "doneFinal"
     const RESULT_UPDATE_COURSE = "courseUpdated"
+    const RESULT_REMOVE_USER = "userRemoved"
 
     export function bindHandlers(app: express.Express, io: SocketIO.Server, storage: azure.FileService) {
         io.on(ON_CONNECTION, connection(app, storage))
@@ -72,8 +75,23 @@ export namespace Sockets {
             socket.on(ON_UPLOAD_FILES, uploadFile(app, socket, storage))
             socket.on(ON_FEEDBACK, updateFeedback(app, socket))
             socket.on(ON_SET_FINAL, manageFinal(app, socket))
+            socket.on(ON_REMOVE_USER, removeUser(app, socket))
         }
     }
+    
+    export function removeUser(app: express.Express, socket: SocketIO.Socket): RemoveUserCall {
+        const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_REMOVE_USER, success, error && (error as any).message ? (error as any).message : error)
+
+        return (group, isAdmin, removeUser) => {
+            if (socket.request.session.passport) {
+                const user = socket.request.session.passport.user
+                if (user.admin) {
+                    Groups.instance.removeUser(group, removeUser, isAdmin, true).then(g => emitResult(true), e => emitResult(false, e))
+                } else emitResult(false, "You have insufficent rights to perform this action.")
+            } else emitResult(false, "The session was lost, please login again.")
+        }
+    }
+
 
     export function createCourse(app: express.Express, socket: SocketIO.Socket): CreateCourse {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_CREATE_COURSE, success, error && (error as any).message ? (error as any).message : error)

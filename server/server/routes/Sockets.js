@@ -1,14 +1,15 @@
 "use strict";
-const Groups_1 = require('../../database/tables/Groups');
-const Users_1 = require('../../database/tables/Users');
-const Assignments_1 = require('../../database/tables/Assignments');
-const MkTables_1 = require('../../database/MkTables');
-const Future_1 = require('../../functional/Future');
-const List_1 = require('../../functional/List');
-const IOMap_1 = require('../../functional/IOMap');
-const Tuple_1 = require('../../functional/Tuple');
-const Files_1 = require('../../database/tables/Files');
-const azure = require('azure-storage');
+Object.defineProperty(exports, "__esModule", { value: true });
+const Groups_1 = require("../../database/tables/Groups");
+const Users_1 = require("../../database/tables/Users");
+const Assignments_1 = require("../../database/tables/Assignments");
+const MkTables_1 = require("../../database/MkTables");
+const Future_1 = require("../../functional/Future");
+const List_1 = require("../../functional/List");
+const IOMap_1 = require("../../functional/IOMap");
+const Tuple_1 = require("../../functional/Tuple");
+const Files_1 = require("../../database/tables/Files");
+const azure = require("azure-storage");
 var Sockets;
 (function (Sockets) {
     const ON_CONNECTION = "connection";
@@ -22,6 +23,7 @@ var Sockets;
     const ON_UPLOAD_FILES = "uploadFiles";
     const ON_FEEDBACK = "updateFeedback";
     const ON_SET_FINAL = "manageFinal";
+    const ON_REMOVE_USER = "removeUser";
     const ON_UPDATE_COURSE = "updateCourse";
     const RESULT_CREATE_COURSE = "courseCreated";
     const RESULT_CREATE_ASSIGNMENT = "assignmentCreated";
@@ -34,6 +36,7 @@ var Sockets;
     const RESULT_FEEDBACK = "feedbacked";
     const RESULT_FINAL = "doneFinal";
     const RESULT_UPDATE_COURSE = "courseUpdated";
+    const RESULT_REMOVE_USER = "userRemoved";
     function bindHandlers(app, io, storage) {
         io.on(ON_CONNECTION, connection(app, storage));
     }
@@ -51,9 +54,26 @@ var Sockets;
             socket.on(ON_UPLOAD_FILES, uploadFile(app, socket, storage));
             socket.on(ON_FEEDBACK, updateFeedback(app, socket));
             socket.on(ON_SET_FINAL, manageFinal(app, socket));
+            socket.on(ON_REMOVE_USER, removeUser(app, socket));
         };
     }
     Sockets.connection = connection;
+    function removeUser(app, socket) {
+        const emitResult = (success, error) => socket.emit(RESULT_REMOVE_USER, success, error && error.message ? error.message : error);
+        return (group, isAdmin, removeUser) => {
+            if (socket.request.session.passport) {
+                const user = socket.request.session.passport.user;
+                if (user.admin) {
+                    Groups_1.Groups.instance.removeUser(group, removeUser, isAdmin, true).then(g => emitResult(true), e => emitResult(false, e));
+                }
+                else
+                    emitResult(false, "You have insufficent rights to perform this action.");
+            }
+            else
+                emitResult(false, "The session was lost, please login again.");
+        };
+    }
+    Sockets.removeUser = removeUser;
     function createCourse(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_CREATE_COURSE, success, error && error.message ? error.message : error);
         return (name, start, end) => {
@@ -166,6 +186,7 @@ var Sockets;
         };
     }
     Sockets.removeCourse = removeCourse;
+    //TODO still needs an isAdmin check!!!
     function removeAssignment(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_REMOVE_ASSIGNMENT, success, error && error.message ? error.message : error);
         return (assignment) => {
@@ -212,6 +233,7 @@ var Sockets;
         };
     }
     Sockets.updateFeedback = updateFeedback;
+    //TODO still needs an isAdmin check!!!
     function addUsers(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_ADD_USERS, success, error);
         return (group, users, role) => {
@@ -258,6 +280,7 @@ var Sockets;
         };
     }
     Sockets.manageFinal = manageFinal;
+    //still remove old pending
     function uploadFile(app, socket, storage) {
         const emitResult = (success, error) => socket.emit(RESULT_UPLOAD_FILES, success, error);
         return (assignment, handInName, comments, students, files) => {
@@ -319,4 +342,24 @@ var Sockets;
         };
     }
     Sockets.uploadFile = uploadFile;
+    //export function getNonFinalFiles(app: express.Express, socket: SocketIO.Socket): SimpleCall {
+    //    const send = (success: boolean, data: string | Error) => emitHtml(socket, SEND_NON_FINAL, success, data)
+    //    return () => {
+    //        if (socket.request.session.passport) {
+    //            const user = socket.request.session.passport.user.id
+    //            Files.instance.getNonFinalFor(user, fl => {
+    //                Render.files(app, "nonFinal", fl, html => send(true, html), err => send(false, err))
+    //            }, e => send(false, e))
+    //        }
+    //    }
+    //}
+    //export function handleNonFinal(app: express.Express, socket: SocketIO.Socket): NonFinalCall {
+    //    return (accept, ass) => {
+    //        if (socket.request.session.passport) {
+    //            const user = socket.request.session.passport.user.id
+    //            if (accept) Files.instance.mkFinal(user, ass)
+    //            else Files.instance.removeNonFinal(user, ass)
+    //        }
+    //    }
+    //}
 })(Sockets = exports.Sockets || (exports.Sockets = {}));

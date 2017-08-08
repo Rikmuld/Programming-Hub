@@ -11,10 +11,10 @@ block append scripts
     script(src="/scripts/includes/cardicons.js")
     script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/overview.js")
-    script(src="/scripts/includes/checkedListGroup.js")
+    script(src="/scripts/includes/js/checkedListGroup.js")
     script
         |initListGroup($("#studentUserList"))
-    script(src="/scripts/includes/dropzone.min.js")
+    script(src="/scripts/includes/js/dropzone.min.js")
     script(src="/scripts/includes/dropzoneCustom.js")
 
 block append styles
@@ -149,10 +149,9 @@ block content
             if user.admin
                 +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
                 +cardLink-a(group.id + "/feedback", "To-Feedback List")
-                +cardLink("View all Results")
+                +cardLink-a(group.id + "/results", "View all Results")
             else
                 +cardLink("Generate Overview")
-                +cardLink("Mail Users")
         if user.admin                
             hr
             h2 Users
@@ -167,8 +166,8 @@ block content
                                 else
                                     .bottom-icons
                                         +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
-                                        +flip-table-a(group._id + "/user/" + usr._id, "list-alt")(target="_blank")
-                                        +flip-table-icon("trash")
+                                        +flip-table-a(group._id + "/user/" + usr._id, "list-alt")
+                                        +flip-table-icon("trash")(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
 
                 .col-sm-6
                     +cardTable("Instructors")
@@ -178,14 +177,13 @@ block content
                                 if usr._id == user.id
                                     p This is you :)
                                 else
-                                    .bottom-icons
-                                        +flip-table-icon("envelope")
-                                        +flip-table-icon("trash")
+                                    p Nothing for now.
             hr
             .row
                 if user.admin
                     +cardLink("Add Users")(data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
-                    +cardLink("Mail Users")
+                    - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
+                    +cardLink-a("mailto:" + mailStudents, "Mail Students")
 
     if user.admin
         mixin assignmentModal(id, changeType)
@@ -232,6 +230,19 @@ block content
                 p 
                     b Note 
                     | Hand-in data (files, feedback and reflections) will be kept but can only be accessed through direct links.
+
+        +modal('removeUser', "Are you sure?", 'danger', 'Remove User')
+            .alert.alert-warning
+                p
+                    b Warning! 
+                    | Your are about to delete the user: '
+                    span#removeUserName
+                    |'!
+                p The user will no longer have any access to the course.
+            .alert.alert-info 
+                p 
+                    b Note 
+                    | Hand-in data (files, feedback and reflections) will be kept and can still be accessed as normal. This action can completely be reversed by re-adding the user.
         
         +modal('addUsers', "Add Users", 'primary', 'Add Users')
             .row
@@ -242,7 +253,6 @@ block content
                     .input-group
                         +select("Role", 'userRole')
                             option(value="student") Student
-                            option(value="admin") Instructor
     else
         +modal('uploadAssignment', "Upload Assignment: ", 'primary', 'Upload Assignment', true)
             +text('Hand-in Name', 'handInName')
