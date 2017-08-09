@@ -88,11 +88,11 @@ function getGroupId() {
 }
 
 function getStartDate(): Date {
-    return new Date($("#group_data").attr("start_date"))
+    return new Date($("#group_data").attr("start"))
 }
 
 function getEndDate(): Date {
-    return new Date($("#group_data").attr("end_date"))
+    return new Date($("#group_data").attr("end"))
 }
 
 function getUsers(users: string) {

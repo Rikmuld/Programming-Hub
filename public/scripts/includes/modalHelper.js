@@ -313,10 +313,13 @@ var ModalValidators;
     function inbetweenDates(start, end) {
         return (modal, date) => {
             const dateDate = date.value();
+            console.log(dateDate);
+            console.log(start);
+            console.log(end);
             if (dateDiff(start, dateDate) < 0)
-                return ["The " + date.name + " has to be after " + dateString(start, start.getFullYear() != dateDate.getFullYear()) + "!"];
+                return ["The " + date.name + " has to be after or on " + dateString(start, start.getFullYear() != dateDate.getFullYear()) + "!"];
             else if (dateDiff(dateDate, end) < 0)
-                return ["The " + date.name + " has to be before " + dateString(end, end.getFullYear() != dateDate.getFullYear()) + "!"];
+                return ["The " + date.name + " has to be before or on " + dateString(end, end.getFullYear() != dateDate.getFullYear()) + "!"];
             else
                 return [];
         };

@@ -65,10 +65,10 @@ function getGroupId() {
     return $("#group_data").attr("group");
 }
 function getStartDate() {
-    return new Date($("#group_data").attr("start_date"));
+    return new Date($("#group_data").attr("start"));
 }
 function getEndDate() {
-    return new Date($("#group_data").attr("end_date"));
+    return new Date($("#group_data").attr("end"));
 }
 function getUsers(users) {
     if ($("#allUserList").html().length == 0)

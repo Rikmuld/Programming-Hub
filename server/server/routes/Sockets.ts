@@ -14,6 +14,9 @@ import { Files } from '../../database/tables/Files'
 
 import * as express from "express"
 import * as azure from 'azure-storage'
+import * as fs from 'fs'
+
+const archiver = require('archiver')
 
 export namespace Sockets {
     type Handler = (socket: SocketIO.Socket) => void
@@ -267,7 +270,7 @@ export namespace Sockets {
         }
     }
 
-    //still remove old pending
+    //flatten....
     export function uploadFile(app: express.Express, socket: SocketIO.Socket, storage: azure.FileService): UploadCall {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_UPLOAD_FILES, success, error)
 
@@ -294,32 +297,55 @@ export namespace Sockets {
                     if (!success) emitResult(false, "We were not able to validate your hand-in!")
                     else {
                         const root = "https://atlasprogramming.file.core.windows.net/handins/"
-                        const pending = root + "pending/" + user.id + "/" + assignment + "/"
-                        Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
-                            const id = file._id
+                        //get root of project here
+                        const temp = mainroot + '/temp/' + assignment + "/" + user.id + "/"
+                        
+                        fs.readdirSync(temp).forEach(file => {
+                            if(files.indexOf(file) == -1) fs.unlink(temp + file)
+                        })
 
-                            storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
-                                storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+                        const outZip = fs.createWriteStream(temp + assignment + "_" + handInName + ".zip")
+                        const zip = archiver('zip', {
+                            zlib: { level: 9 }
+                        })
 
-                                    const fileToLink = (fileName: string) => new Future<string>((res, rej) => {
-                                        storage.startCopyFile(pending + fileName, "handins", "files/" + id, fileName, (error, resu, response) => {
-                                            if (error) rej(error.message)
-                                            else res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
-                                                    AccessPolicy: {
-                                                        Permissions: "r",
-                                                        Expiry: azure.date.daysFromNow(1000)
-                                                    }
-                                                }))
-                                        })
-                                    }) 
+                        outZip.on('close', function() {
+                            Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
+                                const id = file._id
 
-                                    IOMap.traverse<string, string, string>(List.apply(files), IOMap.apply).run(fileToLink).flatMap(links => {
-                                        file.urls = links.toArray()
-                                        return file.save()
-                                    }).flatMap(file => Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e))
+                                storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
+                                    storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+
+                                        //instead upload all in file dir, not copy
+                                        //also unlink all files once done
+                                        const fileToLink = (fileName: string) => new Future<string>((res, rej) => {
+                                            storage.startCopyFile(pending + fileName, "handins", "files/" + id, fileName, (error, resu, response) => {
+                                                if (error) rej(error.message)
+                                                else res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
+                                                        AccessPolicy: {
+                                                            Permissions: "r",
+                                                            Expiry: azure.date.daysFromNow(3560)
+                                                        }
+                                                    }))
+                                            })
+                                        }) 
+
+                                        IOMap.traverse<string, string, string>(List.apply(files), IOMap.apply).run(fileToLink).flatMap(links => {
+                                            file.urls = links.toArray()
+                                            return file.save()
+                                        }).flatMap(file => Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e))
+                                    })
                                 })
-                            })
-                        }, e => emitResult(false, e))
+                            }, e => emitResult(false, e))
+                        })
+
+                        outZip.on('error', function(err) {
+                            // return error to user
+                        })
+
+                        zip.pipe(outZip)
+                        zip.directory(temp, false)
+                        zip.finalize()
                     }
                 }
 

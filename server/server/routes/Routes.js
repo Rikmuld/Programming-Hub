@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const passport = require("passport");
 const fs = require("fs");
+const mkdirp = require("mkdirp");
 const Groups_1 = require("../../database/tables/Groups");
 const Files_1 = require("../../database/tables/Files");
 const Assignments_1 = require("../../database/tables/Assignments");
 const Future_1 = require("../../functional/Future");
+const List_1 = require("../../functional/List");
 const Render_1 = require("./Render");
 //cleanups needed below
 var Routes;
@@ -19,6 +21,7 @@ var Routes;
     const GROUP_ANY = GROUP + "/*";
     const GROUP_USER = GROUP_ANY + "/user/*";
     const FEEDBACK_LIST = GROUP_ANY + "/feedback";
+    const FEEDBACK_LATEST = FEEDBACK_LIST + "/latest";
     const GROUP_ASSIGNMENT = GROUP_ANY + "/assignment/*";
     const FILE = INDEX + "file";
     const FILE_ANY = FILE + "/*";
@@ -41,6 +44,7 @@ var Routes;
         app.get(GROUP_ASSIGNMENT, assignment);
         app.get(GROUP_USER, user);
         app.get(FEEDBACK_LIST, feedbackList);
+        app.get(FEEDBACK_LATEST, feedbackLatest);
         app.get(GROUP_ANY, group);
         app.get(FILE_ANY, file);
         //app.get(FILE_OF, showResultOf)
@@ -95,9 +99,12 @@ var Routes;
             Groups_1.Groups.getGroup(group).flatMap(g => Files_1.Files.forStudentInGroup2(usr, group).map(f => [g, f])).then(data => Render_1.Render.withUser(req, res, "group/overviews/user", { files: data[1][0], group: data[0], student: data[1][1] }), err => Render_1.Render.error(req, res, err));
     }
     function assignment(req, res) {
-        const assignment = req.url.split("/")[4];
+        const data = req.url.split("/");
+        const assignment = data[4];
         if (!req.user)
             res.redirect("/");
+        else if (data.length > 5)
+            res.redirect("/group/" + data[2] + "/assignment/" + assignment);
         else
             Assignments_1.Assignments.instance.exec(Files_1.Files.forAssignment(assignment)).then(ass => Render_1.Render.withUser(req, res, "group/overviews/assignment", { assignment: ass }), err => Render_1.Render.error(req, res, err));
     }
@@ -108,10 +115,29 @@ var Routes;
         else
             Groups_1.Groups.instance.exec(Files_1.Files.forGroup(group)).then(group => Render_1.Render.withUser(req, res, "group/overviews/feedback", { group: group }), err => Render_1.Render.error(req, res, err));
     }
-    function file(req, res) {
-        const file = req.url.split("/")[2];
+    function feedbackLatest(req, res) {
+        const groupID = req.url.split("/")[2];
         if (!req.user)
             res.redirect("/");
+        else
+            Groups_1.Groups.instance.exec(Files_1.Files.forGroup(groupID)).then(group => {
+                const asses = List_1.List.apply(group.assignments);
+                const files = List_1.List.concat(asses.map(a => List_1.List.apply(a.files))).toArray().filter(f => f.feedback == "");
+                if (files.length == 0)
+                    res.redirect("/group/" + groupID + "/feedback");
+                else {
+                    const firstFile = files.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())[0];
+                    res.redirect("/file/" + firstFile._id);
+                }
+            });
+    }
+    function file(req, res) {
+        const data = req.url.split("/");
+        const file = data[2];
+        if (!req.user)
+            res.redirect("/");
+        else if (data.length > 3)
+            res.redirect("/file/" + file);
         else
             Files_1.Files.instance.exec(Files_1.Files.instance.populateAll(Files_1.Files.instance.getByID(file))).then(file => {
                 Render_1.Render.withUser(req, res, "group/file", { file: file });
@@ -248,27 +274,37 @@ var Routes;
             const busboy = req.busboy;
             const data = new Future_1.Future((res, rej) => busboy.on('field', (name, val, nameTrunc, valTrunc, enc, type) => res(val)));
             busboy.on('file', function (fieldname, file, filename) {
-                const filepath = root + '/uploads/' + filename + "_" + req.user.id;
-                const fstream = fs.createWriteStream(filepath);
-                function upload(assignment, success) {
-                    storage.createDirectoryIfNotExists('handins', "pending", (error, result, response) => {
-                        storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id, (error, result, response) => {
-                            storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id + "/" + assignment, (error, result, response) => {
-                                storage.createFileFromLocalFile('handins', "pending" + "/" + req.user.id + "/" + assignment, filename, filepath, (error, result, response) => {
-                                    if (error)
-                                        res.json({ success: false, err: error.message });
-                                    else
-                                        success();
-                                    fs.unlink(filepath);
-                                });
+                data.then(assignment => {
+                    const filepath = root + '/temp/' + assignment + "/" + req.user.id + "/";
+                    mkdirp(filepath, (err) => {
+                        if (err)
+                            res.json({ success: false, error: "Could not create temporary directories" });
+                        else {
+                            const fstream = fs.createWriteStream(filepath + filename);
+                            fstream.on('close', () => {
+                                res.json({ success: true });
                             });
-                        });
+                            file.pipe(fstream);
+                        }
                     });
-                }
-                file.pipe(fstream);
-                fstream.on('close', () => data.then(assignment => upload(assignment, () => res.json({ success: true }))));
+                    return assignment;
+                }, () => res.json({ success: false, error: "Could not receive file data" }));
             });
             req.pipe(busboy);
         };
     }
+    // used to be in file uplaod
+    //  function upload(assignment: string, success: () => void) {
+    //     storage.createDirectoryIfNotExists('handins', "pending", (error, result, response) => {
+    //         storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id, (error, result, response) => {
+    //             storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id + "/" + assignment, (error, result, response) => {
+    //                 storage.createFileFromLocalFile('handins', "pending" + "/" + req.user.id + "/" + assignment, filename, filepath, (error, result, response) => {
+    //                     if (error) res.json({ success: false, err: error.message })
+    //                     else success()
+    //                     fs.unlink(filepath)
+    //                 })
+    //             })
+    //         })
+    //     })
+    // }
 })(Routes = exports.Routes || (exports.Routes = {}));

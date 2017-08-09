@@ -3,9 +3,11 @@ import * as socket from 'socket.io'
 import * as passport from 'passport'
 import * as fs from 'fs'
 import * as azure from 'azure-storage'
+import * as mkdirp from 'mkdirp'
 
 import {Projects} from '../../autograder/Projects'
 import {Groups} from '../../database/tables/Groups'
+import {MkTables} from '../../database/MkTables'
 import {Users} from '../../database/tables/Users'
 import {Files} from '../../database/tables/Files'
 import {Assignments} from '../../database/tables/Assignments'
@@ -37,6 +39,7 @@ export namespace Routes {
     const GROUP_ANY = GROUP + "/*"
     const GROUP_USER = GROUP_ANY + "/user/*"
     const FEEDBACK_LIST = GROUP_ANY + "/feedback"
+    const FEEDBACK_LATEST = FEEDBACK_LIST + "/latest"
     const GROUP_ASSIGNMENT = GROUP_ANY + "/assignment/*"
     const FILE = INDEX + "file"
     const FILE_ANY = FILE + "/*"
@@ -62,6 +65,7 @@ export namespace Routes {
         app.get(GROUP_ASSIGNMENT, assignment)
         app.get(GROUP_USER, user)
         app.get(FEEDBACK_LIST, feedbackList)
+        app.get(FEEDBACK_LATEST, feedbackLatest)
         app.get(GROUP_ANY, group)
         app.get(FILE_ANY, file)
         //app.get(FILE_OF, showResultOf)
@@ -122,9 +126,11 @@ export namespace Routes {
     }
 
     function assignment(req: Req, res: Res) {
-        const assignment = req.url.split("/")[4]
+        const data = req.url.split("/")
+        const assignment = data[4]
 
         if (!req.user) res.redirect("/")
+        else if(data.length > 5) res.redirect("/group/" + data[2] + "/assignment/" + assignment) 
         else Assignments.instance.exec(Files.forAssignment(assignment)).then(ass =>
             Render.withUser(req, res, "group/overviews/assignment", { assignment: ass }), err =>
                 Render.error(req, res, err))
@@ -139,10 +145,28 @@ export namespace Routes {
                 Render.error(req, res, err))
     }
 
-    function file(req: Req, res: Res) {
-        const file = req.url.split("/")[2]
+    function feedbackLatest(req: Req, res: Res) {
+        const groupID = req.url.split("/")[2]
 
         if (!req.user) res.redirect("/")
+        else Groups.instance.exec(Files.forGroup(groupID)).then(group => {
+            const asses = List.apply(group.assignments as MkTables.AssignmentTemplate[])
+            const files = List.concat(asses.map(a => List.apply(a.files as MkTables.FileTemplate[]))).toArray().filter(f => f.feedback == "")
+
+            if(files.length == 0) res.redirect("/group/" + groupID + "/feedback")
+            else {
+                const firstFile = files.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())[0] as any
+                res.redirect("/file/" + firstFile._id)
+            }
+        })
+    }
+
+    function file(req: Req, res: Res) {
+        const data = req.url.split("/")
+        const file = data[2]
+
+        if (!req.user) res.redirect("/")
+        else if(data.length > 3) res.redirect("/file/" + file) 
         else Files.instance.exec(Files.instance.populateAll(Files.instance.getByID(file))).then(file => {
             Render.withUser(req, res, "group/file", { file: file })
         }, e => Render.error(req, res, e.toString()))
@@ -308,28 +332,42 @@ export namespace Routes {
             const data = new Future<string>((res, rej) => busboy.on('field', (name, val, nameTrunc, valTrunc, enc, type) => res(val)))
 
             busboy.on('file', function (fieldname, file, filename) {
-                const filepath = root + '/uploads/' + filename + "_" + req.user.id
-                const fstream = fs.createWriteStream(filepath);
+                data.then(assignment => {
+                    const filepath = root + '/temp/' + assignment + "/" + req.user.id + "/"
+                    
+                    mkdirp(filepath, (err) => {
+                        if(err) res.json({success: false, error: "Could not create temporary directories"})
+                        else {
+                            const fstream = fs.createWriteStream(filepath + filename)
 
-                function upload(assignment: string, success: () => void) {
-                    storage.createDirectoryIfNotExists('handins', "pending", (error, result, response) => {
-                        storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id, (error, result, response) => {
-                            storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id + "/" + assignment, (error, result, response) => {
-                                storage.createFileFromLocalFile('handins', "pending" + "/" + req.user.id + "/" + assignment, filename, filepath, (error, result, response) => {
-                                    if (error) res.json({ success: false, err: error.message })
-                                    else success()
-                                    fs.unlink(filepath)
-                                })
+                            fstream.on('close', () => {
+                                res.json({success: true})
                             })
-                        })
-                    })
-                }
 
-                file.pipe(fstream);
-                fstream.on('close', () => data.then(assignment => upload(assignment, () => res.json({ success: true }))))
+                            file.pipe(fstream)
+                        }
+                    })
+
+                    return assignment
+                }, () => res.json({success: false, error: "Could not receive file data"}))
             })
 
-            req.pipe(busboy);
+            req.pipe(busboy)
         }
     }
+
+    // used to be in file uplaod
+    //  function upload(assignment: string, success: () => void) {
+    //     storage.createDirectoryIfNotExists('handins', "pending", (error, result, response) => {
+    //         storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id, (error, result, response) => {
+    //             storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id + "/" + assignment, (error, result, response) => {
+    //                 storage.createFileFromLocalFile('handins', "pending" + "/" + req.user.id + "/" + assignment, filename, filepath, (error, result, response) => {
+    //                     if (error) res.json({ success: false, err: error.message })
+    //                     else success()
+    //                     fs.unlink(filepath)
+    //                 })
+    //             })
+    //         })
+    //     })
+    // }
 }
