@@ -35,6 +35,7 @@ export namespace Routes {
     const PRIVACY = INDEX + "legal/privacy"
     const AUTH = INDEX + "auth/google"
     const AUTH_CALLBACK = AUTH + "/callback"
+    const RESULTS = INDEX + "results"
     const GROUP = INDEX + "group"
     const GROUP_ANY = GROUP + "/*"
     const GROUP_USER = GROUP_ANY + "/user/*"
@@ -57,6 +58,7 @@ export namespace Routes {
         app.get(INDEX, index)
         app.get(LOGOUT, logout)
         app.get(PRIVACY, showPrivacy)
+        app.get(RESULTS, results)
 
         //app.get(FILES, files)
         //app.get(USERS, users)
@@ -125,6 +127,11 @@ export namespace Routes {
                 Render.error(req, res, err))
     }
 
+    function results(req: Req, res: Res) {
+        if (!req.user) res.redirect("/")
+        else Users.instance.getFullUser(req.user.id).then(user => Render.withUser(req, res, "results", { fullUser: user }), err => Render.error(req, res, err))
+    }
+
     function assignment(req: Req, res: Res) {
         const data = req.url.split("/")
         const assignment = data[4]
@@ -132,7 +139,7 @@ export namespace Routes {
         if (!req.user) res.redirect("/")
         else if(data.length > 5) res.redirect("/group/" + data[2] + "/assignment/" + assignment) 
         else Assignments.instance.exec(Files.forAssignment(assignment)).then(ass =>
-            Render.withUser(req, res, "group/overviews/assignment", { assignment: ass }), err =>
+            Render.withUser(req, res, "group/overviews/assignment", { assignment: ass, group: ass.group }), err =>
                 Render.error(req, res, err))
     }
 
@@ -149,6 +156,7 @@ export namespace Routes {
         const groupID = req.url.split("/")[2]
 
         if (!req.user) res.redirect("/")
+        else if(!req.user.admin) res.redirect("/group/" + groupID)
         else Groups.instance.exec(Files.forGroup(groupID)).then(group => {
             const asses = List.apply(group.assignments as MkTables.AssignmentTemplate[])
             const files = List.concat(asses.map(a => List.apply(a.files as MkTables.FileTemplate[]))).toArray().filter(f => f.feedback == "")
@@ -168,7 +176,7 @@ export namespace Routes {
         if (!req.user) res.redirect("/")
         else if(data.length > 3) res.redirect("/file/" + file) 
         else Files.instance.exec(Files.instance.populateAll(Files.instance.getByID(file))).then(file => {
-            Render.withUser(req, res, "group/file", { file: file })
+            Render.withUser(req, res, "file", { file: file })
         }, e => Render.error(req, res, e.toString()))
     }
 

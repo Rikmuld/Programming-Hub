@@ -264,7 +264,9 @@ namespace ModalValues {
     }
 
     export function date(target): Date {
-        return target.parent().datepicker("getDate") as Date
+        const date = target.parent().datepicker("getDate") as Date
+        if(date) date.setTime(date.getTime() + (1000 * 60 * 60 * 24) - 1)
+        return date
     }
 }
 

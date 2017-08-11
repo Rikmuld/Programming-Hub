@@ -51,6 +51,9 @@ block content
         if user.admin
             .row
                 +cardLink("Create a New Course")(data-toggle="modal" data-target="#addCourse")
+        else
+            .row
+                +cardLink-a("/results", "View all Results")
 
     if user.admin
         mixin courseModal(id)

@@ -1,7 +1,7 @@
-﻿extends ../structure/default.jade
+﻿extends structure/default.jade
 
-include ../includes/modalHelper.jade
-include ../includes/basic.jade
+include includes/modalHelper.jade
+include includes/basic.jade
 
 block append scripts
     script(src="/scripts/includes/modalHelper.js")
@@ -24,20 +24,27 @@ if file.assignment
 block content
     .container
         - var zipURL = file.urls.pop()
-        if !file.assignment                 
-            .alert.alert-warning
-                p
-                    b Alert! 
-                    span The associated assignment was removed!
-        else
+        if file.assignment
             h2= file.assignment.name
         h3#thefile(fileid=file._id)= file.name
-        if file.assignment.typ != "open" && file.due > file.assignment.deadline
+        if file.assignment && file.assignment.typ != "open" && file.timestamp > file.assignment.due
             hr
             .alert.alert-warning
                 p
                     b Late Handin! 
-                    span Assignment was handed in on , but was due for
+                    span Assignment was handed in on #{file.timestamp.toDateString()}, but was due for #{file.assignment.due.toDateString()}
+        if !file.assignment        
+            hr         
+            .alert.alert-warning
+                p
+                    b Alert! 
+                    span The associated assignment was removed!
+        else if !file.assignment.group
+            hr
+            .alert.alert-warning
+                p
+                    b Alert! 
+                    span The associated course was removed!
         hr
         .row
             .col-sm-6
@@ -73,7 +80,8 @@ block content
                     p.whiteContainer No feedback was given yet.
         .row
             hr
-            +cardLink-a(zipURL, "Download all Files")(target="_blank")
+            if file.urls.length > 0
+                +cardLink-a(zipURL, "Download all Files")(target="_blank")
             if user.admin
                 +cardLink("Update Feedback")(data-toggle="modal" data-target="#feedbackModal")
                 - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")
@@ -83,9 +91,7 @@ block content
                     +cardLink-a("/group/" + file.assignment.group._id + "/assignment/" + file.assignment._id, "Go to Assignment")
                     +cardLink-a("/group/" + file.assignment.group._id + "/feedback", "Go to Feedback List")
                     +cardLink-a("/group/" + file.assignment.group._id + "/feedback/latest", "Feedback Next Hand-in")
-            else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
-                +cardLink("Add Additional Comments")
-                if file.assignment && file.assignment.group
+            else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0 && file.assignment && file.assignment.group
                     +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
 
     +modal("feedbackModal", "Feedback Hand-in", "primary", "Update Feedback", false)

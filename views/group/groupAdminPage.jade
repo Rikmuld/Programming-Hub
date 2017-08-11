@@ -1,0 +1,18 @@
+extends ../structure/default.jade
+
+block content
+    .container
+        if !user.admin
+            p You do not have sufficient rights to view this page!
+        else
+            - var partofGroup = false
+            - var full = typeof(group.admins[0]._id) == "string" 
+            - if(full && group.students.find(s => s._id == user.id) != undefined) partofGroup = true 
+            - if(full && group.admins.find(s => s._id == user.id)  != undefined) partofGroup = true 
+            - if(!full && group.students.indexOf(user.id) >= 0) partofGroup = true 
+            - if(!full && group.admins.indexOf(user.id) >= 0) partofGroup = true 
+
+            if partofGroup
+                block groupContent
+            else
+                p You do not have sufficient rights to view this page!

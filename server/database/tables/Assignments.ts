@@ -19,7 +19,7 @@ class Assignment extends Table<Tables.Assignment> {
             }
         }).populate({
             path: "group",
-            select: "name"
+            select: "name students admins"
         })
     }
 

@@ -297,6 +297,15 @@ export namespace Sockets {
                     }
                 })
 
+                const quickCreate = (success) => {
+                    if (!success) emitResult(false, "We were not able to validate your hand-in!")
+                    else {
+                        Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).flatMap(file =>
+                            Users.instance.makeFinal(user.id, groupId, file._id)
+                        ).then(() => emitResult(true), e => emitResult(false, e))
+                    }
+                }
+
                 const upload = (success) => {
                     if (!success) emitResult(false, "We were not able to validate your hand-in!")
                     else {
@@ -369,7 +378,8 @@ export namespace Sockets {
                     }
                 }
 
-                properHandin.then(upload, (err) => emitResult(false, err))
+                if(files.length == 0) properHandin.then(quickCreate, (err) => emitResult(false, err))
+                else properHandin.then(upload, (err) => emitResult(false, err))
             }
         }
     }

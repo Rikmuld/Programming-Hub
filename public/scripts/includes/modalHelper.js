@@ -214,7 +214,10 @@ var ModalValues;
     }
     ModalValues.attr = attr;
     function date(target) {
-        return target.parent().datepicker("getDate");
+        const date = target.parent().datepicker("getDate");
+        if (date)
+            date.setTime(date.getTime() + (1000 * 60 * 60 * 24) - 1);
+        return date;
     }
     ModalValues.date = date;
 })(ModalValues || (ModalValues = {}));

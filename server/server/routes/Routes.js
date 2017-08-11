@@ -4,6 +4,7 @@ const passport = require("passport");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const Groups_1 = require("../../database/tables/Groups");
+const Users_1 = require("../../database/tables/Users");
 const Files_1 = require("../../database/tables/Files");
 const Assignments_1 = require("../../database/tables/Assignments");
 const Future_1 = require("../../functional/Future");
@@ -17,6 +18,7 @@ var Routes;
     const PRIVACY = INDEX + "legal/privacy";
     const AUTH = INDEX + "auth/google";
     const AUTH_CALLBACK = AUTH + "/callback";
+    const RESULTS = INDEX + "results";
     const GROUP = INDEX + "group";
     const GROUP_ANY = GROUP + "/*";
     const GROUP_USER = GROUP_ANY + "/user/*";
@@ -37,6 +39,7 @@ var Routes;
         app.get(INDEX, index);
         app.get(LOGOUT, logout);
         app.get(PRIVACY, showPrivacy);
+        app.get(RESULTS, results);
         //app.get(FILES, files)
         //app.get(USERS, users)
         //app.get(USER, showResults("user", 5, 2))
@@ -98,6 +101,12 @@ var Routes;
         else
             Groups_1.Groups.getGroup(group).flatMap(g => Files_1.Files.forStudentInGroup2(usr, group).map(f => [g, f])).then(data => Render_1.Render.withUser(req, res, "group/overviews/user", { files: data[1][0], group: data[0], student: data[1][1] }), err => Render_1.Render.error(req, res, err));
     }
+    function results(req, res) {
+        if (!req.user)
+            res.redirect("/");
+        else
+            Users_1.Users.instance.getFullUser(req.user.id).then(user => Render_1.Render.withUser(req, res, "results", { fullUser: user }), err => Render_1.Render.error(req, res, err));
+    }
     function assignment(req, res) {
         const data = req.url.split("/");
         const assignment = data[4];
@@ -106,7 +115,7 @@ var Routes;
         else if (data.length > 5)
             res.redirect("/group/" + data[2] + "/assignment/" + assignment);
         else
-            Assignments_1.Assignments.instance.exec(Files_1.Files.forAssignment(assignment)).then(ass => Render_1.Render.withUser(req, res, "group/overviews/assignment", { assignment: ass }), err => Render_1.Render.error(req, res, err));
+            Assignments_1.Assignments.instance.exec(Files_1.Files.forAssignment(assignment)).then(ass => Render_1.Render.withUser(req, res, "group/overviews/assignment", { assignment: ass, group: ass.group }), err => Render_1.Render.error(req, res, err));
     }
     function feedbackList(req, res) {
         const group = req.url.split("/")[2];
@@ -119,6 +128,8 @@ var Routes;
         const groupID = req.url.split("/")[2];
         if (!req.user)
             res.redirect("/");
+        else if (!req.user.admin)
+            res.redirect("/group/" + groupID);
         else
             Groups_1.Groups.instance.exec(Files_1.Files.forGroup(groupID)).then(group => {
                 const asses = List_1.List.apply(group.assignments);
@@ -140,7 +151,7 @@ var Routes;
             res.redirect("/file/" + file);
         else
             Files_1.Files.instance.exec(Files_1.Files.instance.populateAll(Files_1.Files.instance.getByID(file))).then(file => {
-                Render_1.Render.withUser(req, res, "group/file", { file: file });
+                Render_1.Render.withUser(req, res, "file", { file: file });
             }, e => Render_1.Render.error(req, res, e.toString()));
     }
     //function users(req: Req, res: Res) {

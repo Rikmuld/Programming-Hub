@@ -309,6 +309,13 @@ var Sockets;
                         return Future_1.Future.unit(true);
                     }
                 });
+                const quickCreate = (success) => {
+                    if (!success)
+                        emitResult(false, "We were not able to validate your hand-in!");
+                    else {
+                        Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).flatMap(file => Users_1.Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e));
+                    }
+                };
                 const upload = (success) => {
                     if (!success)
                         emitResult(false, "We were not able to validate your hand-in!");
@@ -374,7 +381,10 @@ var Sockets;
                         }
                     }
                 };
-                properHandin.then(upload, (err) => emitResult(false, err));
+                if (files.length == 0)
+                    properHandin.then(quickCreate, (err) => emitResult(false, err));
+                else
+                    properHandin.then(upload, (err) => emitResult(false, err));
             }
         };
     }

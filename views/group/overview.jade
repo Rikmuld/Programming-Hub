@@ -1,4 +1,4 @@
-﻿extends ../structure/default.jade
+﻿extends groupPage.jade
 
 include ../includes/modalHelper.jade
 include ../includes/basic.jade
@@ -22,169 +22,172 @@ block append styles
     link(href="/styles/dropzone.min.css" rel="stylesheet")
     link(href="/styles/dropzoneCustom.css" rel="stylesheet")
 
-block content
+block groupContent
     -var users = []
     -var files = fullUser.groups[0].files
     .container
-        #finalWarning.hidden
-            .alert.alert-info
-                p
-                    b There are non final assignments! 
-                p 
-                    |Make sure to either accept or decline all non final assignments (assignments handed in for you by someone else). 
-                    br
-                    |You can recognize these handins by the light blue dot.
+    #finalWarning.hidden
+        .alert.alert-info
+            p
+                b There are non final assignments! 
+            p 
+                |Make sure to either accept or decline all non final assignments (assignments handed in for you by someone else). 
+                br
+                |You can recognize these handins by the light blue dot.
+        hr
+    h1#group_data(start=group.start end=group.end group=group._id)= group.name
+    
+    if group.assignments.length > 0 && group.assignments[0].typ == "open" && !user.admin
+        h2 Open Assignment
+        - var ass = group.assignments[0]
+        - var handins = files.filter(f => f.file.assignment.toString() == ass._id.toString())
+        .row.groups
+            +flipper()(class="group")
+                +front-card() 
+                    .assignmentStateBulb.back-open
+                    .yAlign
+                        h3.special= ass.name
+                        +timeline(group.start, group.end)(class="hidden" id="openExists")
+                +back-card()
+                    +card-icons()
+                        .bottom-icons
+                            +card-icon("Upload", 'upload')(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+        if handins.length > 0
             hr
-        h1#group_data(start=group.start end=group.end group=group._id)= group.name
-        
-        if group.assignments.length > 0 && group.assignments[0].typ == "open" && !user.admin
-            h2 Open Assignment
-            .row.groups
-                - var ass = group.assignments[0]
-                - var handins = files.filter(f => f.file.assignment.toString() == ass._id.toString())
+        .row.groups
+            for handin in handins
                 +flipper()(class="group")
                     +front-card() 
-                        .assignmentStateBulb.back-open
+                        if !handin.final
+                            .assignmentStateBulb.back-final
+                        else
+                            .assignmentStateBulb.back-done
+                        if handin.file.feedback.length == 0
+                            .assignmentStateFeedback.back-normal
+                        else 
+                            .assignmentStateFeedback.back-done
                         .yAlign
-                            h3.special= ass.name
-                            +timeline(group.start, group.end)(class="hidden" id="openExists")
+                            h3.special= handin.file.name
+                            +timeline(group.start, group.end, handin.file.timestamp)(class="hidden")
                     +back-card()
-                        +card-icons()
+                        +card-icons() 
                             .bottom-icons
-                                +card-icon("Upload", 'upload')(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
-                for handin in handins
-                    +flipper()(class="group")
-                        +front-card() 
-                            if !handin.final
-                                .assignmentStateBulb.back-final
-                            else
-                                .assignmentStateBulb.back-done
-                            if handin.file.feedback.length == 0
-                                .assignmentStateFeedback.back-normal
-                            else 
-                                .assignmentStateFeedback.back-done
-                            .yAlign
-                                h3.special= handin.file.name
-                                +timeline(group.start, group.end, group.now)(class="hidden")
-                        +back-card()
-                            +card-icons() 
-                                .bottom-icons
-                                    +card-icon-a("/file/" + handin.file._id, 'View Hand-in Page', 'list-alt')
-                                    if !handin.final
-                                        +card-icon("Accept Hand-in", 'ok')(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{handin.file.name}" attr-data='{"file": "#{handin.file._id}"}')
-                                        +card-icon("Decline Hand-in", 'remove')(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{handin.file.name}" attr-data='{"file": "#{handin.file._id}"}')
-            hr
+                                +card-icon-a("/file/" + handin.file._id, 'View Hand-in Page', 'list-alt')
+                                if !handin.final
+                                    +card-icon("Accept Hand-in", 'ok')(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{handin.file.name}" attr-data='{"file": "#{handin.file._id}"}')
+                                    +card-icon("Decline Hand-in", 'remove')(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{handin.file.name}" attr-data='{"file": "#{handin.file._id}"}')
+        hr
 
-        if group.assignments.length > 0 && (user.admin || group.assignments.length > 1 || group.assignments[0].typ != "open")
-            h2 Assignments
-            .row.groups
-                for ass in group.assignments
-                    - var file = files.filter(f => f.file.assignment.toString() == ass._id.toString())
-                    - var done = file.length > 0
-                    - var open = ass.typ == "open"
-                    if !open || user.admin
-                        +flipper()(class="group")
-                            +front-card()
-                                if !user.admin
-                                    if done
-                                        if !file[0].final
-                                            .assignmentStateBulb.back-final
-                                        else
-                                            if ass.due > file[0].file.timestamp
-                                                .assignmentStateBulb.back-done
-                                            else
-                                                .assignmentStateBulb.back-late
-                                        if file[0].file.feedback.length == 0
-                                            .assignmentStateFeedback.back-normal
-                                        else 
-                                            .assignmentStateFeedback.back-done
+    if group.assignments.length > 0 && (user.admin || group.assignments.length > 1 || group.assignments[0].typ != "open")
+        h2 Assignments
+        .row.groups
+            for ass in group.assignments
+                - var file = files.filter(f => f.file.assignment.toString() == ass._id.toString())
+                - var done = file.length > 0
+                - var open = ass.typ == "open"
+                if !open || user.admin
+                    +flipper()(class="group")
+                        +front-card()
+                            if !user.admin
+                                if done
+                                    if !file[0].final
+                                        .assignmentStateBulb.back-final
                                     else
-                                        if ass.due > new Date()
-                                            .assignmentStateBulb.back-normal
-                                        else 
-                                            .assignmentStateBulb.back-due
-                                .yAlign
-                                    h3.special= ass.name
-                                    if !user.admin && done
-                                        h4#subheadersmall= file[0].file.name
-                                    .timeline-container
-                                        if open
-                                            +timeline(group.start, group.end)(class="hidden" id="openExists")
+                                        if ass.due > file[0].file.timestamp
+                                            .assignmentStateBulb.back-done
                                         else
-                                            +timeline(group.start, group.end, ass.due)(class="hidden")
-                            +back-card()
-                                +card-icons()
-                                    if user.admin
-                                        if ass.link.length > 0
-                                            .top-icons
-                                                +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
-                                                +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
-                                            .bottom-icons
-                                                +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                            .assignmentStateBulb.back-late
+                                    if file[0].file.feedback.length == 0
+                                        .assignmentStateFeedback.back-normal
+                                    else 
+                                        .assignmentStateFeedback.back-done
+                                else
+                                    if ass.due > new Date()
+                                        .assignmentStateBulb.back-normal
+                                    else 
+                                        .assignmentStateBulb.back-due
+                            .yAlign
+                                h3.special= ass.name
+                                if !user.admin && done
+                                    h4#subheadersmall= file[0].file.name
+                                .timeline-container
+                                    if open
+                                        +timeline(group.start, group.end)(class="hidden" id="openExists")
+                                    else
+                                        +timeline(group.start, group.end, ass.due)(class="hidden")
+                        +back-card()
+                            +card-icons()
+                                if user.admin
+                                    if ass.link.length > 0
+                                        .top-icons
+                                            +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
+                                            +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                        .bottom-icons
+                                            +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                            +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
+                                    else
+                                        .bottom-icons
+                                            +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
+                                            +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                            +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                else
+                                    if !done
+                                        .bottom-icons
+                                            +card-icon("Upload", 'upload')(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                            if ass.link.length > 0
                                                 +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
-                                        else
-                                            .bottom-icons
-                                                +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
-                                                +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
-                                                +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
                                     else
-                                        if !done
-                                            .bottom-icons
-                                                +card-icon("Upload", 'upload')(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
-                                                if ass.link.length > 0
-                                                    +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
-                                        else
-                                            .bottom-icons
-                                                +card-icon-a("/file/" + file[0].file._id, 'View Hand-in Page', 'list-alt')
-                                                if !file[0].final
-                                                    +card-icon("Accept Hand-in", 'ok')(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
-                                                    +card-icon("Decline Hand-in", 'remove')(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
-                                                if ass.link.length > 0
-                                                    +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
+                                        .bottom-icons
+                                            +card-icon-a("/file/" + file[0].file._id, 'View Hand-in Page', 'list-alt')
+                                            if !file[0].final
+                                                +card-icon("Accept Hand-in", 'ok')(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
+                                                +card-icon("Decline Hand-in", 'remove')(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
+                                            if ass.link.length > 0
+                                                +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
+    else
+        h2 Assignments
+        p No assignments were made yet!
+    hr
+    .row
+        if user.admin
+            +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
+            +cardLink-a(group.id + "/feedback", "To-Feedback List")
+            +cardLink-a(group._id + "/feedback/latest", "Feedback Latest Hand-in")
+            +cardLink-a(group.id + "/results", "View all Results")
         else
-            h2 Assignments
-            p No assignments were made yet!
+            +cardLink("Generate Overview")
+    if user.admin                
+        hr
+        h2 Users
+        .row
+            .col-sm-6
+                +cardTable("Students")
+                    for usr in group.students
+                        -users.push('"' + usr._id + '"')
+                        +cardTableFlip(usr.name + " " + usr.surename)
+                            if usr._id == user.id
+                                p This is you :)
+                            else
+                                .bottom-icons
+                                    +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
+                                    +flip-table-a(group._id + "/user/" + usr._id, "list-alt")
+                                    +flip-table-icon("trash")(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
+
+            .col-sm-6
+                +cardTable("Instructors")
+                    for usr in group.admins
+                        -users.push('"' + usr._id + '"')
+                        +cardTableFlip(usr.name + " " + usr.surename)
+                            if usr._id == user.id
+                                p This is you :)
+                            else
+                                p Nothing for now.
         hr
         .row
             if user.admin
-                +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
-                +cardLink-a(group.id + "/feedback", "To-Feedback List")
-                +cardLink-a(group._id + "/feedback/latest", "Feedback Latest Hand-in")
-                +cardLink-a(group.id + "/results", "View all Results")
-            else
-                +cardLink("Generate Overview")
-        if user.admin                
-            hr
-            h2 Users
-            .row
-                .col-sm-6
-                    +cardTable("Students")
-                        for usr in group.students
-                            -users.push('"' + usr._id + '"')
-                            +cardTableFlip(usr.name + " " + usr.surename)
-                                if usr._id == user.id
-                                    p This is you :)
-                                else
-                                    .bottom-icons
-                                        +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
-                                        +flip-table-a(group._id + "/user/" + usr._id, "list-alt")
-                                        +flip-table-icon("trash")(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
-
-                .col-sm-6
-                    +cardTable("Instructors")
-                        for usr in group.admins
-                            -users.push('"' + usr._id + '"')
-                            +cardTableFlip(usr.name + " " + usr.surename)
-                                if usr._id == user.id
-                                    p This is you :)
-                                else
-                                    p Nothing for now.
-            hr
-            .row
-                if user.admin
-                    +cardLink("Add Users")(data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
-                    - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
-                    +cardLink-a("mailto:" + mailStudents, "Mail Students")
+                +cardLink("Add Users")(data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
+                - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
+                +cardLink-a("mailto:" + mailStudents, "Mail Students")
 
     if user.admin
         mixin assignmentModal(id, changeType)

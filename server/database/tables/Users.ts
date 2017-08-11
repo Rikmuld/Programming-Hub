@@ -52,12 +52,21 @@ class User extends Table<Tables.User> {
         }))
     }
 
+    getFullUser<B>(user: string): Future<Tables.User> {
+        return Future.lift(this.getByID(user).populate("groups.group").populate({
+            path:  "groups.files.file",
+            options: {
+                populate: "assignment"
+            }
+        }).exec())
+    }
+
     populateGroupFiles2<B>(user: Tables.User, group: string): Future<Tables.File[]> {
         return Files.instance.exec(Files.instance.populateAssignment(Files.instance.getByIDs(user.groups.filter(g => g.group == group)[0].files.map(f => f.file as string))), false)
     }
 
     populateGroupFiles<B>(user: Tables.User, group: string): Future<Tables.User> {
-        user.groups = user.groups.filter(g => g.group == group)
+        user.groups = [user.groups.find(g => g.group == group)]
         return this.populateAllFiles(user)
     }
 

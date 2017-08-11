@@ -52,11 +52,19 @@ class User extends Table_1.Table {
             path: "groups.files.file groups.group"
         }));
     }
+    getFullUser(user) {
+        return Future_1.Future.lift(this.getByID(user).populate("groups.group").populate({
+            path: "groups.files.file",
+            options: {
+                populate: "assignment"
+            }
+        }).exec());
+    }
     populateGroupFiles2(user, group) {
         return Files_1.Files.instance.exec(Files_1.Files.instance.populateAssignment(Files_1.Files.instance.getByIDs(user.groups.filter(g => g.group == group)[0].files.map(f => f.file))), false);
     }
     populateGroupFiles(user, group) {
-        user.groups = user.groups.filter(g => g.group == group);
+        user.groups = [user.groups.find(g => g.group == group)];
         return this.populateAllFiles(user);
     }
     makeFinal(student, group, file) {

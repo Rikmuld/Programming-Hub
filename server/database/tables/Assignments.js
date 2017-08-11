@@ -19,7 +19,7 @@ class Assignment extends Table_1.Table {
             }
         }).populate({
             path: "group",
-            select: "name"
+            select: "name students admins"
         });
     }
     removeAssignment(assignment, removeRef) {
