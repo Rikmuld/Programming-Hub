@@ -59,7 +59,7 @@ class Group extends Table<Tables.Group> {
             const index = collection.indexOf(s)
             if (index >= 0) collection.splice(index, 1)
         }).flatMap(a => {
-            if (updateStudent) return Users.instance.removeFromGroup(s, g, admin, false).map(u => a)
+            if (updateStudent) return Users.instance.removeFromGroup(s, g, false, admin).map(u => a)
             else return Future.unit(a)
         })
     }

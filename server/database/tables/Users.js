@@ -28,7 +28,7 @@ class User extends Table_1.Table {
     }
     removeFromGroup(s, g, updateGroup, admin) {
         return this.updateOne(s, (a) => {
-            const ids = Users.activeGroupIDs(a);
+            const ids = Users.groupIDs(a);
             const index = ids.toArray().indexOf(g.toString());
             if (index >= 0)
                 a.groups[index].active = false;

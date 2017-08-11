@@ -21,9 +21,7 @@ function init() {
         const sender = $(this)
         const ID = sender.attr("socketID")
         const data = sender.attr("socketData")
-
-        console.log(ID, data)
-
+        
         socket.emit(ID, data)
     })
 

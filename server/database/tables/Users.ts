@@ -26,9 +26,10 @@ class User extends Table<Tables.User> {
 
     removeFromGroup(s: string, g: string, updateGroup: boolean, admin: boolean): Future<Tables.User> {
         return this.updateOne(s, (a: Tables.User) => {
-            const ids = Users.activeGroupIDs(a)
+            const ids = Users.groupIDs(a)
             const index = ids.toArray().indexOf(g.toString())
             if (index >= 0) a.groups[index].active = false
+
         }).flatMap(a => {
             if (updateGroup) return Groups.instance.removeUser(g, s, admin, false).map(u => a)
             else return Future.unit(a)
