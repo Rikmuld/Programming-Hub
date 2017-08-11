@@ -68,7 +68,8 @@ export namespace Files {
         return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateAllFiles(s))
     }
 
-    export function forStudentInGroup2(student: string, group: string): Future<[Tables.File[], Tables.User]> {
+    //actually Future<[File[], User]>
+    export function forStudentInGroup2(student: string, group: string): Future<any[]> {
         return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles2(s, group).map(f => [f, s]))
     }
 

@@ -84,7 +84,7 @@ block content
                     +cardLink-a("/group/" + file.assignment.group._id + "/feedback", "Go to Feedback List")
                     +cardLink-a("/group/" + file.assignment.group._id + "/feedback/latest", "Feedback Next Hand-in")
             else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
-                +cardLink("Edit Comments")
+                +cardLink("Add Additional Comments")
                 if file.assignment && file.assignment.group
                     +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
 

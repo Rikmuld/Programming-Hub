@@ -53,6 +53,7 @@ var Files;
         return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateAllFiles(s));
     }
     Files.forStudent = forStudent;
+    //actually Future<[File[], User]>
     function forStudentInGroup2(student, group) {
         return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles2(s, group).map(f => [f, s]));
     }
