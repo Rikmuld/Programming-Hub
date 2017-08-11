@@ -26,6 +26,6 @@ Setup.addAuthMiddleware(app)
 Setup.addAsMiddleware(app, "db", db)
 
 Routes.addRoutes(app, rootdir, storage)
-Sockets.bindHandlers(app, io, storage)
+Sockets.bindHandlers(app, io, storage, rootdir)
 
 Setup.startServer(server)

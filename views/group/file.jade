@@ -23,6 +23,7 @@ if file.assignment
 
 block content
     .container
+        - var zipURL = file.urls.pop()
         if !file.assignment                 
             .alert.alert-warning
                 p
@@ -72,7 +73,7 @@ block content
                     p.whiteContainer No feedback was given yet.
         .row
             hr
-            +cardLink("Download all Files")
+            +cardLink-a(zipURL, "Download all Files")(target="_blank")
             if user.admin
                 +cardLink("Update Feedback")(data-toggle="modal" data-target="#feedbackModal")
                 - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")

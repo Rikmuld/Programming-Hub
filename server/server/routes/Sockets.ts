@@ -61,8 +61,12 @@ export namespace Sockets {
     const RESULT_UPDATE_COURSE = "courseUpdated"
     const RESULT_REMOVE_USER = "userRemoved"
 
-    export function bindHandlers(app: express.Express, io: SocketIO.Server, storage: azure.FileService) {
+    let mainRoot: string
+
+    export function bindHandlers(app: express.Express, io: SocketIO.Server, storage: azure.FileService, root: string) {
         io.on(ON_CONNECTION, connection(app, storage))
+
+        mainRoot = root
     }
 
     export function connection(app: express.Express, storage: azure.FileService): Handler {
@@ -297,55 +301,71 @@ export namespace Sockets {
                     if (!success) emitResult(false, "We were not able to validate your hand-in!")
                     else {
                         const root = "https://atlasprogramming.file.core.windows.net/handins/"
-                        //get root of project here
-                        const temp = mainroot + '/temp/' + assignment + "/" + user.id + "/"
-                        
+                        const temp = mainRoot + '/temp/' + assignment + "/" + user.id + "/"
+                        const zipName = user.id + "_" + handInName + ".zip"
+                        let zipFail = false
+
                         fs.readdirSync(temp).forEach(file => {
-                            if(files.indexOf(file) == -1) fs.unlink(temp + file)
+                            if(files.indexOf(file) >=0 && file == zipName) {
+                                emitResult(false, "The filename: '" + zipName + "' (userID_handInName.zip) is reserved and cannot be uploaded, please change this name.")
+                                zipFail = true
+                            }
                         })
 
-                        const outZip = fs.createWriteStream(temp + assignment + "_" + handInName + ".zip")
-                        const zip = archiver('zip', {
-                            zlib: { level: 9 }
-                        })
+                        if(!zipFail){
+                            fs.readdirSync(temp).forEach(file => {
+                                if(files.indexOf(file) == -1) fs.unlink(temp + file)
+                            })
 
-                        outZip.on('close', function() {
-                            Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
-                                const id = file._id
+                            const outZip = fs.createWriteStream(temp + zipName)
+                            const zip = archiver('zip', {
+                                zlib: { level: 9 }
+                            })
 
-                                storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
-                                    storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+                            outZip.on('close', function() {
+                                Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
+                                    const id = file._id
 
-                                        //instead upload all in file dir, not copy
-                                        //also unlink all files once done
-                                        const fileToLink = (fileName: string) => new Future<string>((res, rej) => {
-                                            storage.startCopyFile(pending + fileName, "handins", "files/" + id, fileName, (error, resu, response) => {
-                                                if (error) rej(error.message)
-                                                else res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
-                                                        AccessPolicy: {
-                                                            Permissions: "r",
-                                                            Expiry: azure.date.daysFromNow(3560)
-                                                        }
-                                                    }))
-                                            })
-                                        }) 
+                                    storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
+                                        storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
 
-                                        IOMap.traverse<string, string, string>(List.apply(files), IOMap.apply).run(fileToLink).flatMap(links => {
-                                            file.urls = links.toArray()
-                                            return file.save()
-                                        }).flatMap(file => Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e))
+                                            const fileToLink = (fileName: string) => new Future<string>((res, rej) => {
+                                                storage.createFileFromLocalFile("handins", "files/" + id, fileName, temp + fileName, (error, resu, response) => {
+                                                    if (error) rej(error.message)
+                                                    else {
+                                                        fs.unlink(temp + fileName)
+                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
+                                                            AccessPolicy: {
+                                                                Permissions: "r",
+                                                                Expiry: azure.date.daysFromNow(3560)
+                                                            }
+                                                        }))
+                                                    }
+                                                })
+                                            }) 
+
+                                            fileToLink(zipName).flatMap(zipLink => {
+                                                return IOMap.traverse<string, string, string>(List.apply(files), IOMap.apply).run(fileToLink).flatMap(links => {
+                                                    file.urls = links.toArray()
+                                                    file.urls.push(zipLink)
+                                                    return file.save()
+                                                }).flatMap(file => Users.instance.makeFinal(user.id, groupId, file._id))
+                                            }).then(() => emitResult(true), e => emitResult(false, e))
+                                        })
                                     })
-                                })
-                            }, e => emitResult(false, e))
-                        })
+                                }, e => emitResult(false, e))
+                            })
 
-                        outZip.on('error', function(err) {
-                            // return error to user
-                        })
+                            outZip.on('error', function(err) {
+                                emitResult(false, "An error occurred during the archiving of the uploaded files.")
+                            })
 
-                        zip.pipe(outZip)
-                        zip.directory(temp, false)
-                        zip.finalize()
+                            zip.pipe(outZip)
+                            files.forEach(file => {
+                                 zip.file(temp + file, { name: file })
+                            })
+                            zip.finalize()
+                        }
                     }
                 }
 

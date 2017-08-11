@@ -39,8 +39,10 @@ var Sockets;
     const RESULT_FINAL = "doneFinal";
     const RESULT_UPDATE_COURSE = "courseUpdated";
     const RESULT_REMOVE_USER = "userRemoved";
-    function bindHandlers(app, io, storage) {
+    let mainRoot;
+    function bindHandlers(app, io, storage, root) {
         io.on(ON_CONNECTION, connection(app, storage));
+        mainRoot = root;
     }
     Sockets.bindHandlers = bindHandlers;
     function connection(app, storage) {
@@ -312,50 +314,64 @@ var Sockets;
                         emitResult(false, "We were not able to validate your hand-in!");
                     else {
                         const root = "https://atlasprogramming.file.core.windows.net/handins/";
-                        //get root of project here
-                        const temp = mainroot + '/temp/' + assignment + "/" + user.id + "/";
+                        const temp = mainRoot + '/temp/' + assignment + "/" + user.id + "/";
+                        const zipName = user.id + "_" + handInName + ".zip";
+                        let zipFail = false;
                         fs.readdirSync(temp).forEach(file => {
-                            if (files.indexOf(file) == -1)
-                                fs.unlink(temp + file);
+                            if (files.indexOf(file) >= 0 && file == zipName) {
+                                emitResult(false, "The filename: '" + zipName + "' (userID_handInName.zip) is reserved and cannot be uploaded, please change this name.");
+                                zipFail = true;
+                            }
                         });
-                        const outZip = fs.createWriteStream(temp + assignment + "_" + handInName + ".zip");
-                        const zip = archiver('zip', {
-                            zlib: { level: 9 }
-                        });
-                        outZip.on('close', function () {
-                            Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
-                                const id = file._id;
-                                storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
-                                    storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
-                                        //instead upload all in file dir, not copy
-                                        //also unlink all files once done
-                                        const fileToLink = (fileName) => new Future_1.Future((res, rej) => {
-                                            storage.startCopyFile(pending + fileName, "handins", "files/" + id, fileName, (error, resu, response) => {
-                                                if (error)
-                                                    rej(error.message);
-                                                else
-                                                    res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
-                                                        AccessPolicy: {
-                                                            Permissions: "r",
-                                                            Expiry: azure.date.daysFromNow(3560)
-                                                        }
-                                                    }));
+                        if (!zipFail) {
+                            fs.readdirSync(temp).forEach(file => {
+                                if (files.indexOf(file) == -1)
+                                    fs.unlink(temp + file);
+                            });
+                            const outZip = fs.createWriteStream(temp + zipName);
+                            const zip = archiver('zip', {
+                                zlib: { level: 9 }
+                            });
+                            outZip.on('close', function () {
+                                Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
+                                    const id = file._id;
+                                    storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
+                                        storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+                                            const fileToLink = (fileName) => new Future_1.Future((res, rej) => {
+                                                storage.createFileFromLocalFile("handins", "files/" + id, fileName, temp + fileName, (error, resu, response) => {
+                                                    if (error)
+                                                        rej(error.message);
+                                                    else {
+                                                        fs.unlink(temp + fileName);
+                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
+                                                            AccessPolicy: {
+                                                                Permissions: "r",
+                                                                Expiry: azure.date.daysFromNow(3560)
+                                                            }
+                                                        }));
+                                                    }
+                                                });
                                             });
+                                            fileToLink(zipName).flatMap(zipLink => {
+                                                return IOMap_1.IOMap.traverse(List_1.List.apply(files), IOMap_1.IOMap.apply).run(fileToLink).flatMap(links => {
+                                                    file.urls = links.toArray();
+                                                    file.urls.push(zipLink);
+                                                    return file.save();
+                                                }).flatMap(file => Users_1.Users.instance.makeFinal(user.id, groupId, file._id));
+                                            }).then(() => emitResult(true), e => emitResult(false, e));
                                         });
-                                        IOMap_1.IOMap.traverse(List_1.List.apply(files), IOMap_1.IOMap.apply).run(fileToLink).flatMap(links => {
-                                            file.urls = links.toArray();
-                                            return file.save();
-                                        }).flatMap(file => Users_1.Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e));
                                     });
-                                });
-                            }, e => emitResult(false, e));
-                        });
-                        outZip.on('error', function (err) {
-                            // return error to user
-                        });
-                        zip.pipe(outZip);
-                        zip.directory(temp, false);
-                        zip.finalize();
+                                }, e => emitResult(false, e));
+                            });
+                            outZip.on('error', function (err) {
+                                emitResult(false, "An error occurred during the archiving of the uploaded files.");
+                            });
+                            zip.pipe(outZip);
+                            files.forEach(file => {
+                                zip.file(temp + file, { name: file });
+                            });
+                            zip.finalize();
+                        }
                     }
                 };
                 properHandin.then(upload, (err) => emitResult(false, err));
