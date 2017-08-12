@@ -1,53 +1,46 @@
 ﻿extends ../groupAdminPage.jade
 
 include ../../includes/basic.jade
+include ../../includes/accordion.jade
 
 block append scripts
-    script(src="/scripts/includes/cardicons.js")
-    script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/includes/timeline.js")
+    script(src="/scripts/userOverview.js")
 
 block append styles
-    link(href="/styles/flip.css" rel="stylesheet")
+    link(href="/styles/results.css" rel="stylesheet")
 
 block headerTitle
     h1
         a(href="/group/" + group._id )= group.name
-    h2#subheader Student
+    h2#subheader Student Results
 
 block groupContent
-    h2 #{student.name} #{student.surename} (#{student._id})
-    
-    if group.assignments.length == 0
-        h2 Assignments
-        p The student did not hand in any assignments yet!
-    
-    else
-        h3 Assignments
-        .row
-            for file in files
-                - var ass = file.assignment
-                if ass
-                    +flipper()(class="group")
-                        +front-card()
-                            if ass.typ == "open" || ass.due > file.timestamp
-                                .assignmentStateBulb.back-done
-                            else
-                                .assignmentStateBulb.back-late
-                            if file.feedback.length == 0
-                                .assignmentStateFeedback.back-normal
+    if group.students.length == 0
+        p The course does not have any students
+    else 
+        +accordion("accGroups")
+            for user in group.students
+                +acc-item("accGroups", user._id.replace(/\./g, ""), user.name + " " + user.surename + " (" + user._id + ")", student && user._id == student._id, user.groups[0].files.length)(class="userResultsGet" user=user._id group=group._id)
+                    .userResultsSet(user=user._id)
+                        if student && user._id == student._id
+                            if files.length == 0
+                                p The student did not hand in any assignments yet!
                             else 
-                                .assignmentStateFeedback.back-done
-                            .yAlign
-                                h3.special= ass.name
-                                h4#subheadersmall= file.name
-                                +timeline(group.start, group.end, file.timestamp)(class="hidden")
-                        +back-card()
-                            +card-icons() 
-                                .bottom-icons
-                                    +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
-                                    if ass.link.length > 0
-                                        +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
-    hr
-    .row
-        +cardLink-a("../../" + group.id, "Back to Course")
+                                for file in files
+                                    .card-holder.col-md-3.col-sm-4.col-xs-6
+                                        .file-card
+                                            a.card(href="/file/" + file._id)
+                                                if file.assignment
+                                                    if file.assignment.typ == "open" || file.assignment.due > file.timestamp
+                                                        .assignmentStateBulb.back-done
+                                                    else
+                                                        .assignmentStateBulb.back-late
+                                                    if file.feedback.length == 0
+                                                        .assignmentStateFeedback.back-normal
+                                                    else 
+                                                        .assignmentStateFeedback.back-done
+                                                    .yAlign
+                                                        h3.special= file.assignment.name
+                                                        h4#subheadersmall= file.name
+                                                        +timeline(group.start, group.end, file.timestamp)(class="hidden")

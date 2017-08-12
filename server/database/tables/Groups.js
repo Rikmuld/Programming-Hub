@@ -91,14 +91,14 @@ class Group extends Table_1.Table {
         };
         return query.populate(pop);
     }
-    populateStudents(query) {
-        return this.populateUserType(query, "students"); //only return name and surename, not all
+    populateStudents(query, groupid) {
+        return this.populateUserType(query, "students", groupid); //only return name and surename, not all
     }
-    populateAdmins(query) {
-        return this.populateUserType(query, "admins"); //only return name and surename, not all
+    populateAdmins(query, groupid) {
+        return this.populateUserType(query, "admins", groupid); //only return name and surename, not all
     }
-    populateUsers(query) {
-        return this.populateStudents(this.populateAdmins(query));
+    populateUsers(query, groupid) {
+        return this.populateStudents(this.populateAdmins(query, groupid), groupid);
     }
     populateFiles(query, fileFileter = {}) {
         return query.populate({
@@ -113,7 +113,7 @@ class Group extends Table_1.Table {
             }
         });
     }
-    populateUserType(query, typ) {
+    populateUserType(query, typ, groupid) {
         return query.populate({
             path: typ,
             options: {
@@ -122,10 +122,10 @@ class Group extends Table_1.Table {
         });
     }
     getStudents(g) {
-        return this.map(this.populateStudents(this.getByID(g)), g => g.students);
+        return this.map(this.populateStudents(this.getByID(g), g), g => g.students);
     }
     getAdmins(g) {
-        return this.map(this.populateAdmins(this.getByID(g)), g => g.admins);
+        return this.map(this.populateAdmins(this.getByID(g), g), g => g.admins);
     }
     isAdmin(g, user) {
         return this.map(this.getByID(g), g => g.admins.indexOf(user) >= 0);
@@ -139,7 +139,17 @@ var Groups;
     }
     Groups.getGroups = getGroups;
     function getGroup(group) {
-        return Groups.instance.exec(Groups.instance.populateUsers(Groups.instance.populateAssignments(Groups.instance.getByID(group))));
+        return Groups.instance.exec(Groups.instance.populateUsers(Groups.instance.populateAssignments(Groups.instance.getByID(group)), group)).map(g => {
+            g.students = g.students.map(s => {
+                s.groups = s.groups.filter(g => g.group == group);
+                return s;
+            });
+            g.admins = g.admins.map(s => {
+                s.groups = s.groups.filter(g => g.group == group);
+                return s;
+            });
+            return g;
+        });
     }
     Groups.getGroup = getGroup;
     function removeGroup(group) {

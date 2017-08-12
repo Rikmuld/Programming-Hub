@@ -33,6 +33,7 @@ export namespace Sockets {
     type FeedbackCall = (file:string, feedback: string) => void
     type FinalCall = (accept: boolean, group:string, file:string) => void
     type RemoveUserCall = (group: string, isAdmin: boolean, user: string) => void
+    type UserResults = (group: string, user: string) => void
 
     const ON_CONNECTION = "connection"
     const ON_CREATE_COURSE = "createCourse"
@@ -47,6 +48,7 @@ export namespace Sockets {
     const ON_SET_FINAL = "manageFinal"
     const ON_REMOVE_USER = "removeUser"
     const ON_UPDATE_COURSE = "updateCourse"
+    const ON_USER_RESULTS = "getUserResults"
 
     const RESULT_CREATE_COURSE = "courseCreated"
     const RESULT_CREATE_ASSIGNMENT = "assignmentCreated"
@@ -60,6 +62,7 @@ export namespace Sockets {
     const RESULT_FINAL = "doneFinal"
     const RESULT_UPDATE_COURSE = "courseUpdated"
     const RESULT_REMOVE_USER = "userRemoved"
+    const RESULT_USER_RESULTS = "userResultsGot"
 
     let mainRoot: string
 
@@ -83,6 +86,7 @@ export namespace Sockets {
             socket.on(ON_FEEDBACK, updateFeedback(app, socket))
             socket.on(ON_SET_FINAL, manageFinal(app, socket))
             socket.on(ON_REMOVE_USER, removeUser(app, socket))
+            socket.on(ON_USER_RESULTS, userResults(app, socket))
         }
     }
     
@@ -94,7 +98,7 @@ export namespace Sockets {
                 const user = socket.request.session.passport.user
                 if (user.admin) {
                     Groups.instance.removeUser(group, removeUser, isAdmin, true).then(g => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -109,7 +113,7 @@ export namespace Sockets {
                 if (user.admin) {
                     Groups.instance.create(MkTables.mkGroup(name, start, end)).flatMap(g =>
                         Groups.instance.addUser(g._id, user.id, true, true)).then(g => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -126,7 +130,7 @@ export namespace Sockets {
                         g.start = start
                         g.end = end
                     }).then(g => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -151,9 +155,9 @@ export namespace Sockets {
                                 if (a.typ == type) return Future.unit(a)
                                 else return Future.reject("You cannot change the type of an assignment!")
                             })
-                        } else return Future.reject("You have insufficent rights to perform this action.")
+                        } else return Future.reject("You have insufficient rights to perform this action.")
                     }).then(a => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -167,9 +171,9 @@ export namespace Sockets {
                 if (user.admin) {
                     Groups.instance.isAdmin(group, user.id).flatMap(isAdmin => {
                         if (isAdmin) return Groups.instance.mkAndAddAssignment(group, MkTables.mkAssignment(name, group, due, type, link))
-                        else return Future.reject("You have insufficent rights to perform this action.")
+                        else return Future.reject("You have insufficient rights to perform this action.")
                     }).then(a => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -183,9 +187,9 @@ export namespace Sockets {
                 if (user.admin) {
                     Groups.instance.isAdmin(course, user.id).flatMap(isAdmin => {
                         if (isAdmin) return Groups.removeGroup(course)
-                        else Future.reject("You have insufficent rights to perform this action.")
+                        else Future.reject("You have insufficient rights to perform this action.")
                     }).then(v => emitResult(true), errors => emitResult(false, errors))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -199,7 +203,7 @@ export namespace Sockets {
                 const user = socket.request.session.passport.user
                 if (user.admin) {
                     Assignments.instance.removeAssignment(assignment, true).then(v => emitResult(true), errors => emitResult(false, errors))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -219,6 +223,20 @@ export namespace Sockets {
         }
     }
 
+    export function userResults(app: express.Express, socket: SocketIO.Socket): UserResults {
+        const emitResult = (html: string, user: string) => socket.emit(RESULT_USER_RESULTS, html, user)
+
+        return (group: string, theUser: string) => {
+            if (socket.request.session.passport) {
+                const user = socket.request.session.passport.user
+                if (user.admin) {
+                    console.log(group, theUser)
+                    Files.forStudentInGroup3(theUser, group).then(u => Render.userResults(app, { files: u.groups[0].files.map(file => file.file) }, html => emitResult(html, theUser), err => emitResult(err.message, theUser)))
+                } else emitResult("You have insufficient rights to perform this action.", theUser)
+            } else emitResult("The session was lost, please login again.", theUser)
+        }
+    }
+
     export function updateFeedback(app: express.Express, socket: SocketIO.Socket): FeedbackCall {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_FEEDBACK, success, error && (error as any).message ? (error as any).message : error)
 
@@ -228,7 +246,7 @@ export namespace Sockets {
 
                 if (user.admin) {
                     Files.instance.updateFeedback(file, feedback).then(f => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }
@@ -244,7 +262,7 @@ export namespace Sockets {
                 const user = socket.request.session.passport.user
                 if (user.admin) {
                     Groups.instance.addUsers(group, users, role == "admin").then(g => emitResult(true), e => emitResult(false, e))
-                } else emitResult(false, "You have insufficent rights to perform this action.")
+                } else emitResult(false, "You have insufficient rights to perform this action.")
             } else emitResult(false, "The session was lost, please login again.")
         }
     }

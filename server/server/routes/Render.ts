@@ -46,11 +46,9 @@ export namespace Render {
     //    })
     //}
 
-    //export function groupsOverview(app: express.Express, loc: string, data: Groups.GroupOverview[], success: Suc, fail: Err) {
-    //    render(app, loc, {
-    //        groups: data
-    //    }, success, fail)
-    //}
+    export function userResults(app: express.Express, data: {}, success: Suc, fail: Err) {
+       render(app, "group/overviews/userResults", data, success, fail)
+    }
 
     //export function upload(app: express.Express, loc: string, project:string, filename:string, success: Suc, fail: Err) {
     //    render(app, loc, {
@@ -79,12 +77,12 @@ export namespace Render {
     //    }, success as Suc, fail)
     //}
 
-    //export function render(app: express.Express, loc: string, data: {}, success: Suc, fail: Err) {
-    //    app.render(loc, data, (err, suc) => {
-    //        if (err) fail(err)
-    //        else success(suc)
-    //    })
-    //}
+    export function render(app: express.Express, loc: string, data: {}, success: Suc, fail: Err) {
+       app.render(loc, data, (err, suc) => {
+           if (err) fail(err)
+           else success(suc)
+       })
+    }
 
     //export function results(app: express.Express, loc: string, project:string, data: TestJSON<any>[], success: Suc, fail: Err) {
     //    render(app, loc, {

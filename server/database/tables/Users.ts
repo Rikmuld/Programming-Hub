@@ -53,6 +53,16 @@ class User extends Table<Tables.User> {
         }))
     }
 
+    populateFiles<B>(user: Tables.User): Future<Tables.User> {
+        return Future.lift(this.model.populate(user, {
+            path: "groups.files.file",
+            options: {
+                select: "name timestamp feedback assignment",
+                populate: "assignment"
+            }
+        }))
+    }
+
     getFullUser<B>(user: string): Future<Tables.User> {
         return Future.lift(this.getByID(user).populate("groups.group").populate({
             path:  "groups.files.file",
@@ -69,6 +79,11 @@ class User extends Table<Tables.User> {
     populateGroupFiles<B>(user: Tables.User, group: string): Future<Tables.User> {
         user.groups = [user.groups.find(g => g.group == group)]
         return this.populateAllFiles(user)
+    }
+
+    populateGroupFiles3<B>(user: Tables.User, group: string): Future<Tables.User> {
+        user.groups = [user.groups.find(g => g.group == group)]
+        return this.populateFiles(user)
     }
 
     makeFinal(student:string, group: string, file: string): Future<Tables.User> {

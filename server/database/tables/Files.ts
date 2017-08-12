@@ -77,6 +77,10 @@ export namespace Files {
         return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles(s, group))
     }
 
+    export function forStudentInGroup3(student: string, group: string): Future<Tables.User> {
+        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles3(s, group))
+    }
+
     export function forAssignment(assignment: string): Assignments.QueryOne {
         return Assignments.instance.populateFiles(Assignments.instance.getByID(assignment))
     }

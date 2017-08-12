@@ -38,7 +38,8 @@ export namespace Routes {
     const RESULTS = INDEX + "results"
     const GROUP = INDEX + "group"
     const GROUP_ANY = GROUP + "/*"
-    const GROUP_USER = GROUP_ANY + "/user/*"
+    const GROUP_USER_OVERVIEW = GROUP_ANY + "/user"
+    const GROUP_USER = GROUP_USER_OVERVIEW + "/*"
     const FEEDBACK_LIST = GROUP_ANY + "/feedback"
     const FEEDBACK_LATEST = FEEDBACK_LIST + "/latest"
     const GROUP_ASSIGNMENT = GROUP_ANY + "/assignment/*"
@@ -59,21 +60,14 @@ export namespace Routes {
         app.get(LOGOUT, logout)
         app.get(PRIVACY, showPrivacy)
         app.get(RESULTS, results)
-
-        //app.get(FILES, files)
-        //app.get(USERS, users)
-        //app.get(USER, showResults("user", 5, 2))
-        //app.get(OVERVIEW, showResults("overview", 3, 2))
         app.get(GROUP_ASSIGNMENT, assignment)
+        app.get(GROUP_USER_OVERVIEW, userOver)
         app.get(GROUP_USER, user)
         app.get(FEEDBACK_LIST, feedbackList)
         app.get(FEEDBACK_LATEST, feedbackLatest)
         app.get(GROUP_ANY, group)
         app.get(FILE_ANY, file)
-        //app.get(FILE_OF, showResultOf)
-        //app.get(FILE, showResult)
 
-        //app.post(SUBMIT_RESULTS, submitResults)
         app.post(FILE_UPLOAD, fileUpload(app, root))
 
         app.get(AUTH, passport.authenticate('google', {
@@ -124,6 +118,15 @@ export namespace Routes {
         if (!req.user) res.redirect("/")
         else Groups.getGroup(group).flatMap(g => Files.forStudentInGroup2(usr, group).map(f => [g, f])).then(data =>
             Render.withUser(req, res, "group/overviews/user", { files: data[1][0], group:data[0], student: data[1][1] }), err =>
+                Render.error(req, res, err))
+    }
+
+    function userOver(req: Req, res: Res) {
+        const group = req.url.split("/")[2]
+
+        if (!req.user) res.redirect("/")
+        else Groups.getGroup(group).then(group =>
+            Render.withUser(req, res, "group/overviews/user", { group:group }), err =>
                 Render.error(req, res, err))
     }
 

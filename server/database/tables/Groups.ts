@@ -93,16 +93,16 @@ class Group extends Table<Tables.Group> {
         return query.populate(pop)
     }
 
-    populateStudents<B>(query: Groups.QueryA<B>): Groups.QueryA<B> {
-        return this.populateUserType(query, "students") //only return name and surename, not all
+    populateStudents<B>(query: Groups.QueryA<B>, groupid): Groups.QueryA<B> {
+        return this.populateUserType(query, "students", groupid) //only return name and surename, not all
     }
 
-    populateAdmins<B>(query: Groups.QueryA<B>): Groups.QueryA<B> {
-        return this.populateUserType(query, "admins") //only return name and surename, not all
+    populateAdmins<B>(query: Groups.QueryA<B>, groupid: string): Groups.QueryA<B> {
+        return this.populateUserType(query, "admins", groupid) //only return name and surename, not all
     }
 
-    populateUsers<B>(query: Groups.QueryA<B>): Groups.QueryA<B> {
-        return this.populateStudents(this.populateAdmins(query))
+    populateUsers<B>(query: Groups.QueryA<B>, groupid: string): Groups.QueryA<B> {
+        return this.populateStudents(this.populateAdmins(query, groupid), groupid)
     }
 
     populateFiles<B>(query: Groups.QueryA<B>, fileFileter: {} = {}): Groups.QueryA<B> {
@@ -119,7 +119,7 @@ class Group extends Table<Tables.Group> {
         })
     }
 
-    private populateUserType<B>(query: Groups.QueryA<B>, typ: string): Groups.QueryA<B> {
+    private populateUserType<B>(query: Groups.QueryA<B>, typ: string, groupid: string): Groups.QueryA<B> {
         return query.populate({
             path: typ,
             options: {
@@ -129,11 +129,11 @@ class Group extends Table<Tables.Group> {
     }
 
     getStudents(g: string): Future<Tables.User[]> {
-        return this.map(this.populateStudents(this.getByID(g)), g => g.students as Tables.User[])
+        return this.map(this.populateStudents(this.getByID(g), g), g => g.students as Tables.User[])
     }
 
     getAdmins(g: string): Future<Tables.User[]> {
-        return this.map(this.populateAdmins(this.getByID(g)), g => g.admins as Tables.User[])
+        return this.map(this.populateAdmins(this.getByID(g), g), g => g.admins as Tables.User[])
     }
 
     isAdmin(g: string, user: string): Future<boolean> {
@@ -153,7 +153,19 @@ export namespace Groups {
     }
 
     export function getGroup(group: string): Future<Tables.Group> {
-        return instance.exec(instance.populateUsers(instance.populateAssignments(instance.getByID(group))))
+        return instance.exec(instance.populateUsers(instance.populateAssignments(instance.getByID(group)), group)).map(g => {
+            g.students = (g.students as Tables.User[]).map(s => {
+                s.groups = s.groups.filter(g => g.group == group)
+                return s
+            })
+
+            g.admins = (g.admins as Tables.User[]).map(s => {
+                s.groups = s.groups.filter(g => g.group == group)
+                return s
+            })
+
+            return g
+        })
     }
 
     export function removeGroup(group: string): Future<void> {

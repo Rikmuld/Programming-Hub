@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Render_1 = require("./Render");
 const Groups_1 = require("../../database/tables/Groups");
 const Users_1 = require("../../database/tables/Users");
 const Assignments_1 = require("../../database/tables/Assignments");
@@ -27,6 +28,7 @@ var Sockets;
     const ON_SET_FINAL = "manageFinal";
     const ON_REMOVE_USER = "removeUser";
     const ON_UPDATE_COURSE = "updateCourse";
+    const ON_USER_RESULTS = "getUserResults";
     const RESULT_CREATE_COURSE = "courseCreated";
     const RESULT_CREATE_ASSIGNMENT = "assignmentCreated";
     const RESULT_REMOVE_COURSE = "courseRemoved";
@@ -39,6 +41,7 @@ var Sockets;
     const RESULT_FINAL = "doneFinal";
     const RESULT_UPDATE_COURSE = "courseUpdated";
     const RESULT_REMOVE_USER = "userRemoved";
+    const RESULT_USER_RESULTS = "userResultsGot";
     let mainRoot;
     function bindHandlers(app, io, storage, root) {
         io.on(ON_CONNECTION, connection(app, storage));
@@ -59,6 +62,7 @@ var Sockets;
             socket.on(ON_FEEDBACK, updateFeedback(app, socket));
             socket.on(ON_SET_FINAL, manageFinal(app, socket));
             socket.on(ON_REMOVE_USER, removeUser(app, socket));
+            socket.on(ON_USER_RESULTS, userResults(app, socket));
         };
     }
     Sockets.connection = connection;
@@ -71,7 +75,7 @@ var Sockets;
                     Groups_1.Groups.instance.removeUser(group, removeUser, isAdmin, true).then(g => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -87,7 +91,7 @@ var Sockets;
                     Groups_1.Groups.instance.create(MkTables_1.MkTables.mkGroup(name, start, end)).flatMap(g => Groups_1.Groups.instance.addUser(g._id, user.id, true, true)).then(g => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -107,7 +111,7 @@ var Sockets;
                     }).then(g => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -137,11 +141,11 @@ var Sockets;
                             });
                         }
                         else
-                            return Future_1.Future.reject("You have insufficent rights to perform this action.");
+                            return Future_1.Future.reject("You have insufficient rights to perform this action.");
                     }).then(a => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -158,11 +162,11 @@ var Sockets;
                         if (isAdmin)
                             return Groups_1.Groups.instance.mkAndAddAssignment(group, MkTables_1.MkTables.mkAssignment(name, group, due, type, link));
                         else
-                            return Future_1.Future.reject("You have insufficent rights to perform this action.");
+                            return Future_1.Future.reject("You have insufficient rights to perform this action.");
                     }).then(a => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -179,11 +183,11 @@ var Sockets;
                         if (isAdmin)
                             return Groups_1.Groups.removeGroup(course);
                         else
-                            Future_1.Future.reject("You have insufficent rights to perform this action.");
+                            Future_1.Future.reject("You have insufficient rights to perform this action.");
                     }).then(v => emitResult(true), errors => emitResult(false, errors));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -200,7 +204,7 @@ var Sockets;
                     Assignments_1.Assignments.instance.removeAssignment(assignment, true).then(v => emitResult(true), errors => emitResult(false, errors));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -221,6 +225,23 @@ var Sockets;
         };
     }
     Sockets.getUsers = getUsers;
+    function userResults(app, socket) {
+        const emitResult = (html, user) => socket.emit(RESULT_USER_RESULTS, html, user);
+        return (group, theUser) => {
+            if (socket.request.session.passport) {
+                const user = socket.request.session.passport.user;
+                if (user.admin) {
+                    console.log(group, theUser);
+                    Files_1.Files.forStudentInGroup3(theUser, group).then(u => Render_1.Render.userResults(app, { files: u.groups[0].files.map(file => file.file) }, html => emitResult(html, theUser), err => emitResult(err.message, theUser)));
+                }
+                else
+                    emitResult("You have insufficient rights to perform this action.", theUser);
+            }
+            else
+                emitResult("The session was lost, please login again.", theUser);
+        };
+    }
+    Sockets.userResults = userResults;
     function updateFeedback(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_FEEDBACK, success, error && error.message ? error.message : error);
         return (file, feedback) => {
@@ -230,7 +251,7 @@ var Sockets;
                     Files_1.Files.instance.updateFeedback(file, feedback).then(f => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");
@@ -248,7 +269,7 @@ var Sockets;
                     Groups_1.Groups.instance.addUsers(group, users, role == "admin").then(g => emitResult(true), e => emitResult(false, e));
                 }
                 else
-                    emitResult(false, "You have insufficent rights to perform this action.");
+                    emitResult(false, "You have insufficient rights to perform this action.");
             }
             else
                 emitResult(false, "The session was lost, please login again.");

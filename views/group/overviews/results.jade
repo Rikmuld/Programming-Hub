@@ -22,7 +22,7 @@ block content
                 if !group.group
                     - hasRemovedGroups = true
                 else
-                    +acc-item("accGroups", group.group._id, group.group.name, false, group.group.start.toLocaleDateString() + " to " + group.group.end.toLocaleDateString())
+                    +acc-item("accGroups", group.group._id, group.group.name, group.group.start.toLocaleDateString() + " to " + group.group.end.toLocaleDateString())
                         .row
                             for file in group.files
                                 .card-holder.col-md-3.col-sm-4.col-xs-6

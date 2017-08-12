@@ -2,12 +2,17 @@ mixin accordion(id)
     .panel-group(id=id role="tablist" aria-multiselectable="true")
         block
 
-mixin acc-item(parID, id, heading, info)
+mixin acc-item(parID, id, heading, isopen, info)
     .panel.panel-default
         .panel-heading(role="tab" id=id)
             h4.panel-title
-                a(role="button" data-toggle="collapse" data-parent=parID href="#" + id + "_collapse" aria-expanded="false" aria-controls=id + "_collapse")= heading
+                a(role="button" data-toggle="collapse" data-parent=parID href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)= heading
                 span.right= info
-        .panel-collapse.collapse(id=id + "_collapse" aria-expanded="false" role="tabpanel" aria-labelledby="headingOne")
-            .panel-body
-                block
+        if isopen
+            .panel-collapse.collapse.in(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
+                .panel-body
+                    block
+        else 
+            .panel-collapse.collapse(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
+                .panel-body
+                    block

@@ -52,6 +52,15 @@ class User extends Table_1.Table {
             path: "groups.files.file groups.group"
         }));
     }
+    populateFiles(user) {
+        return Future_1.Future.lift(this.model.populate(user, {
+            path: "groups.files.file",
+            options: {
+                select: "name timestamp feedback assignment",
+                populate: "assignment"
+            }
+        }));
+    }
     getFullUser(user) {
         return Future_1.Future.lift(this.getByID(user).populate("groups.group").populate({
             path: "groups.files.file",
@@ -66,6 +75,10 @@ class User extends Table_1.Table {
     populateGroupFiles(user, group) {
         user.groups = [user.groups.find(g => g.group == group)];
         return this.populateAllFiles(user);
+    }
+    populateGroupFiles3(user, group) {
+        user.groups = [user.groups.find(g => g.group == group)];
+        return this.populateFiles(user);
     }
     makeFinal(student, group, file) {
         return this.updateOne(student, s => s.groups.find(g => g.group == group).files.find(f => f.file == file).final = true);

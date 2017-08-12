@@ -62,6 +62,10 @@ var Files;
         return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles(s, group));
     }
     Files.forStudentInGroup = forStudentInGroup;
+    function forStudentInGroup3(student, group) {
+        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles3(s, group));
+    }
+    Files.forStudentInGroup3 = forStudentInGroup3;
     function forAssignment(assignment) {
         return Assignments_1.Assignments.instance.populateFiles(Assignments_1.Assignments.instance.getByID(assignment));
     }

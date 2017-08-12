@@ -11,7 +11,6 @@ function setupTimeline(timeline) {
     const begin = 0;
     const end = dateDiff(mindate, maxdate);
     const now = (diffNow < 0) ? 0 : diffNow;
-    console.log(begin, end, now);
     timeline.attr("aria-valuenow", now);
     timeline.attr("aria-valuemin", begin);
     timeline.attr("aria-valuemax", end);

@@ -38,10 +38,12 @@ block content
                                 if user.admin
                                     .top-icons
                                         +card-icon-a("/group/"+group._id, 'Course Overview', 'home')
-                                        +card-icon-a("/group/"+group._id + "/feedback", 'To-Feedback List', 'pencil')
+                                        +card-icon-a("/group/"+group._id + "/feedback/latest", 'Feedback Oldest Handin', 'pencil')
+                                        +card-icon-a("/group/"+group._id + "/user", 'View Results by Student', 'user')
                                     .bottom-icons
                                         +card-icon("Edit Course", 'cog')(class="manipulate" data-toggle="modal" data-target="#updateCourse" target="#update_courseName" attr-data='{"value": "#{group.name}", "start": "#{group.start}", "end":"#{group.end}", "course": "#{group._id}"}')
                                         +card-icon("Remove Course", 'trash')(class="manipulate" data-toggle="modal" data-target="#removeCourse" target="#removeCourseName" text-data="#{group.name}" attr-data='{"course": "#{group._id}"}')
+                                        +card-icon-a("/group/"+group._id + "/assignment", 'View Results by Assignment', 'list-alt')
                                 else
                                     .bottom-icons
                                         +card-icon-a("/group/"+group._id, 'Course Overview', 'home')

@@ -151,8 +151,9 @@ block groupContent
         if user.admin
             +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
             +cardLink-a(group.id + "/feedback", "To-Feedback List")
-            +cardLink-a(group._id + "/feedback/latest", "Feedback Latest Hand-in")
-            +cardLink-a(group.id + "/results", "View all Results")
+            +cardLink-a(group._id + "/feedback/latest", "Feedback Oldest Hand-in")
+            +cardLink-a(group.id + "/user", "View Results by Student")
+            +cardLink-a(group.id + "/assignment", "View Results by Assignment")
         else
             +cardLink("Generate Overview")
     if user.admin                
