@@ -4,7 +4,8 @@ include ../../includes/accordion.jade
 if files.length == 0
     p The student did not hand in any assignments yet!
 else 
-    for file in files
+    for finalFile in files
+        - var file = finalFile.file
         .card-holder.col-md-3.col-sm-4.col-xs-6
             .file-card
                 a.card(href="/file/" + file._id)

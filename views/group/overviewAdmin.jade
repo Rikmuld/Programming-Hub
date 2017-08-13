@@ -1,0 +1,174 @@
+﻿extends groupAdminPage.jade
+
+include ../includes/modalHelper.jade
+include ../includes/basic.jade
+
+block append scripts
+    script(src="/scripts/includes/modalHelper.js")
+    script
+        |$('.datepicker').datepicker();
+    script(src="/scripts/includes/timeline.js")
+    script(src="/scripts/includes/cardicons.js")
+    script(src="/scripts/includes/selectTrigger.js")
+    script(src="/scripts/overview.js")
+    script(src="/scripts/includes/js/checkedListGroup.js")
+    script
+        |initListGroup($("#studentUserList"))
+    script(src="/scripts/includes/js/dropzone.min.js")
+    script(src="/scripts/includes/dropzoneCustom.js")
+
+block append styles
+    link(href="/styles/flip.css" rel="stylesheet")
+    link(href="/styles/dropzone.min.css" rel="stylesheet")
+    link(href="/styles/dropzoneCustom.css" rel="stylesheet")
+
+block groupContent
+    -var users = []
+    #finalWarning.hidden
+        .alert.alert-info
+            p
+                b There are non final assignments! 
+            p 
+                |Make sure to either accept or decline all non final assignments (assignments handed in for you by someone else). 
+                br
+                |You can recognize these handins by the light blue dot.
+        hr
+    h1#group_data(start=group.start end=group.end group=group._id)= group.name
+    
+    if group.assignments.length > 0
+        h2 Assignments
+        .row.groups
+            for ass in group.assignments
+                - var open = ass.typ == "open"
+                +flipper()(class="group")
+                    +front-card()
+                        .yAlign
+                            h3.special= ass.name
+                            .timeline-container
+                                if open
+                                    +timeline(group.start, group.end)(class="hidden" id="openExists")
+                                else
+                                    +timeline(group.start, group.end, ass.due)(class="hidden")
+                    +back-card()
+                        +card-icons()
+                            if ass.link.length > 0
+                                .top-icons
+                                    +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
+                                    +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                .bottom-icons
+                                    +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                    +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
+                            else
+                                .bottom-icons
+                                    +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
+                                    +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                    +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+    else
+        h2 Assignments
+        p No assignments were made yet!
+
+    hr
+    .row
+        +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
+        +cardLink-a(group.id + "/feedback", "To-Feedback List")
+        +cardLink-a(group._id + "/feedback/latest", "Feedback Oldest Hand-in")
+        +cardLink-a(group.id + "/user", "View Results by Student")
+        +cardLink-a(group.id + "/assignment", "View Results by Assignment")
+    hr
+    h2 Users
+    .row
+        .col-sm-6
+            +cardTable("Students")
+                for usr in group.students
+                    -users.push('"' + usr._id + '"')
+                    +cardTableFlip(usr.name + " " + usr.surename)
+                        if usr._id == user.id
+                            p This is you :)
+                        else
+                            .bottom-icons
+                                +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
+                                +flip-table-a(group._id + "/user/" + usr._id, "list-alt")
+                                +flip-table-icon("trash")(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
+
+        .col-sm-6
+            +cardTable("Instructors")
+                for usr in group.admins
+                    -users.push('"' + usr._id + '"')
+                    +cardTableFlip(usr.name + " " + usr.surename)
+                        if usr._id == user.id
+                            p This is you :)
+                        else
+                            p Nothing for now.
+    hr
+    .row
+        +cardLink("Add Users")(data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
+        - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
+        +cardLink-a("mailto:" + mailStudents, "Mail Students")
+
+    mixin assignmentModal(id, changeType)
+        .row
+            .col-xs-8
+                +text("Name", id + 'assignmentName')
+            .col-xs-4
+                - var extraClass = changeType? "hidden":""
+                .input-group(class=extraClass)
+                    +select("Type", id + 'assignmentType')(class="selectTrigger" container="#assignment-data" + id)
+                        option(value="defined") Defined
+                        option(value="open") Open
+                        option(value="autograder") Autograder
+        div(id="assignment-data" + id)
+            .selectActor(data="defined")
+                .row.mtop10
+                    .col-xs-8
+                        +date("Due Date", id + 'due')
+                hr
+                label(for=id + "infoLink") Additional Information Link (optional)
+                +text("http://", id + "infoLink")
+            .selectActor.hidden(data="autograder")
+                hr
+                .alert.alert-warning
+                    p Sorry, the autograder option is disabled in this version!
+
+    +modal('addAssignment', 'Create a New Assignment', 'primary', 'Create Assignment')
+        +assignmentModal('')
+
+    +modal('editAssignment', 'Edit Assignment', 'primary', 'Update Assignment')
+        +assignmentModal('update_', true)
+
+    +modal('removeAssignment', "Are you sure?", 'danger', 'Delete Assignment')
+        .alert.alert-warning
+            p
+                b Warning! 
+                | Your are about to delete the assignment: '
+                span#removeAssignmentName
+                |'!
+            p This assignment will dissappear for all users. This is 
+                b unrecoverable
+                |!
+        .alert.alert-info 
+            p 
+                b Note 
+                | Hand-in data (files, feedback and reflections) will be kept but can only be accessed through direct links.
+
+    +modal('removeUser', "Are you sure?", 'danger', 'Remove User')
+        .alert.alert-warning
+            p
+                b Warning! 
+                | Your are about to delete the user: '
+                span#removeUserName
+                |'!
+            p The user will no longer have any access to the course.
+        .alert.alert-info 
+            p 
+                b Note 
+                | Hand-in data (files, feedback and reflections) will be kept and can still be accessed as normal. This action can completely be reversed by re-adding the user.
+    
+    +modal('addUsers', "Add Users", 'primary', 'Add Users')
+        .row
+            .col-xs-8
+                .well.multiSelect#userSelect
+                    ul.list-group.checked-list-box#allUserList
+            .col-xs-4
+                .input-group
+                    +select("Role", 'userRole')
+                        option(value="student") Student

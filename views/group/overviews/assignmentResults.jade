@@ -1,0 +1,26 @@
+﻿include ../../includes/basic.jade
+
+if theAssignment.files.length == 0
+    p There are no handins for this assignment
+else 
+    for file in theAssignment.files
+        .card-holder.col-md-3.col-sm-4.col-xs-6
+            .file-card
+                a.card(href="/file/" + file._id)
+                    if theAssignment.typ == "open" || theAssignment.due > file.timestamp
+                        .assignmentStateBulb.back-done
+                    else
+                        .assignmentStateBulb.back-late
+                    if file.feedback.length == 0
+                        .assignmentStateFeedback.back-normal
+                    else
+                        .assignmentStateFeedback.back-done
+                    .yAlign
+                        h3.special= theAssignment.name
+                        h4#subheadersmall
+                            span #{file.students[0].name} #{file.students[0].surename} 
+                            - var done = file.students[0]._id
+                            for student in file.students
+                                if student._id != done
+                                    span / #{student.name} #{student.surename} 
+                        +timeline(new Date(), new Date(), file.timestamp)(class="hidden")

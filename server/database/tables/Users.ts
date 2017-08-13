@@ -13,9 +13,6 @@ class User extends Table<Tables.User> {
             const index = ids.toArray().indexOf(g) 
             if (index == -1) a.groups.push({ group: g, files: [], active: true })
             else if(!a.groups[index].active) {
-                console.log("this must equal")
-                console.log(g)
-                console.log(a.groups[index].group)
                 a.groups[index].active = true
             }
         }).flatMap(a => {
@@ -47,22 +44,6 @@ class User extends Table<Tables.User> {
         })
     }
 
-    populateAllFiles<B>(user: Tables.User): Future<Tables.User> {
-        return Future.lift(this.model.populate(user, {
-            path: "groups.files.file groups.group"
-        }))
-    }
-
-    populateFiles<B>(user: Tables.User): Future<Tables.User> {
-        return Future.lift(this.model.populate(user, {
-            path: "groups.files.file",
-            options: {
-                select: "name timestamp feedback assignment",
-                populate: "assignment"
-            }
-        }))
-    }
-
     getFullUser<B>(user: string): Future<Tables.User> {
         return Future.lift(this.getByID(user).populate("groups.group").populate({
             path:  "groups.files.file",
@@ -72,18 +53,19 @@ class User extends Table<Tables.User> {
         }).exec())
     }
 
-    populateGroupFiles2<B>(user: Tables.User, group: string): Future<Tables.File[]> {
-        return Files.instance.exec(Files.instance.populateAssignment(Files.instance.getByIDs(user.groups.filter(g => g.group == group)[0].files.map(f => f.file as string))), false)
-    }
+    populateGroupFiles<B>(user: Tables.User, group: string): Future<Users.FinalFile[]> {
+        const files = user.groups.find(g => g.group == group).files
+        const areFinal = files.map(f => f.final)
+        const fileIds = files.map(f => f.file.toString())
 
-    populateGroupFiles<B>(user: Tables.User, group: string): Future<Tables.User> {
-        user.groups = [user.groups.find(g => g.group == group)]
-        return this.populateAllFiles(user)
-    }
-
-    populateGroupFiles3<B>(user: Tables.User, group: string): Future<Tables.User> {
-        user.groups = [user.groups.find(g => g.group == group)]
-        return this.populateFiles(user)
+        return Future.lift(Files.instance.getByIDs(fileIds).populate("assignment").exec()).map(f => {
+            return f.map(file => {
+                return {
+                    file: file,
+                    final: areFinal[fileIds.indexOf(file._id.toString())]
+                }
+            })
+        })
     }
 
     makeFinal(student:string, group: string, file: string): Future<Tables.User> {
@@ -95,6 +77,11 @@ export namespace Users {
     export type Query = mongoose.DocumentQuery<Tables.User[], Tables.User>
     export type QueryOne = mongoose.DocumentQuery<Tables.User, Tables.User> 
     export type QueryA<A> = mongoose.DocumentQuery<A, Tables.User> 
+
+    export interface FinalFile {
+        file: Tables.File,
+        final: boolean
+    }
 
     export interface GoogleProfile {
         email: string,

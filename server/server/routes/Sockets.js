@@ -29,6 +29,7 @@ var Sockets;
     const ON_REMOVE_USER = "removeUser";
     const ON_UPDATE_COURSE = "updateCourse";
     const ON_USER_RESULTS = "getUserResults";
+    const ON_ASSIGNMENT_RESULTS = "getAssignmentResults";
     const RESULT_CREATE_COURSE = "courseCreated";
     const RESULT_CREATE_ASSIGNMENT = "assignmentCreated";
     const RESULT_REMOVE_COURSE = "courseRemoved";
@@ -42,6 +43,7 @@ var Sockets;
     const RESULT_UPDATE_COURSE = "courseUpdated";
     const RESULT_REMOVE_USER = "userRemoved";
     const RESULT_USER_RESULTS = "userResultsGot";
+    const RESULT_ASSIGNMENT_RESULTS = "assignmentResultsGot";
     let mainRoot;
     function bindHandlers(app, io, storage, root) {
         io.on(ON_CONNECTION, connection(app, storage));
@@ -63,6 +65,7 @@ var Sockets;
             socket.on(ON_SET_FINAL, manageFinal(app, socket));
             socket.on(ON_REMOVE_USER, removeUser(app, socket));
             socket.on(ON_USER_RESULTS, userResults(app, socket));
+            socket.on(ON_ASSIGNMENT_RESULTS, assignmentResults(app, socket));
         };
     }
     Sockets.connection = connection;
@@ -231,8 +234,7 @@ var Sockets;
             if (socket.request.session.passport) {
                 const user = socket.request.session.passport.user;
                 if (user.admin) {
-                    console.log(group, theUser);
-                    Files_1.Files.forStudentInGroup3(theUser, group).then(u => Render_1.Render.userResults(app, { files: u.groups[0].files.map(file => file.file) }, html => emitResult(html, theUser), err => emitResult(err.message, theUser)));
+                    Files_1.Files.forStudentInGroup(theUser, group).then(userFiles => Render_1.Render.render(app, "group/overviews/userResults", { files: userFiles._2 }, html => emitResult(html, theUser), err => emitResult(err.message, theUser)));
                 }
                 else
                     emitResult("You have insufficient rights to perform this action.", theUser);
@@ -242,6 +244,22 @@ var Sockets;
         };
     }
     Sockets.userResults = userResults;
+    function assignmentResults(app, socket) {
+        const emitResult = (html, theAssignment) => socket.emit(RESULT_ASSIGNMENT_RESULTS, html, theAssignment);
+        return (group, theAssignment) => {
+            if (socket.request.session.passport) {
+                const user = socket.request.session.passport.user;
+                if (user.admin) {
+                    Assignments_1.Assignments.instance.exec(Files_1.Files.forAssignment(theAssignment)).then(ass => Render_1.Render.render(app, "group/overviews/assignmentResults", { theAssignment: ass }, html => emitResult(html, theAssignment), err => emitResult(err.message, theAssignment)));
+                }
+                else
+                    emitResult("You have insufficient rights to perform this action.", theAssignment);
+            }
+            else
+                emitResult("The session was lost, please login again.", theAssignment);
+        };
+    }
+    Sockets.assignmentResults = assignmentResults;
     function updateFeedback(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_FEEDBACK, success, error && error.message ? error.message : error);
         return (file, feedback) => {
@@ -410,24 +428,4 @@ var Sockets;
         };
     }
     Sockets.uploadFile = uploadFile;
-    //export function getNonFinalFiles(app: express.Express, socket: SocketIO.Socket): SimpleCall {
-    //    const send = (success: boolean, data: string | Error) => emitHtml(socket, SEND_NON_FINAL, success, data)
-    //    return () => {
-    //        if (socket.request.session.passport) {
-    //            const user = socket.request.session.passport.user.id
-    //            Files.instance.getNonFinalFor(user, fl => {
-    //                Render.files(app, "nonFinal", fl, html => send(true, html), err => send(false, err))
-    //            }, e => send(false, e))
-    //        }
-    //    }
-    //}
-    //export function handleNonFinal(app: express.Express, socket: SocketIO.Socket): NonFinalCall {
-    //    return (accept, ass) => {
-    //        if (socket.request.session.passport) {
-    //            const user = socket.request.session.passport.user.id
-    //            if (accept) Files.instance.mkFinal(user, ass)
-    //            else Files.instance.removeNonFinal(user, ass)
-    //        }
-    //    }
-    //}
 })(Sockets = exports.Sockets || (exports.Sockets = {}));

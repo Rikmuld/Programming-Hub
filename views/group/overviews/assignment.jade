@@ -1,51 +1,50 @@
 ﻿extends ../groupAdminPage.jade
 
 include ../../includes/basic.jade
+include ../../includes/accordion.jade
 
 block append scripts
-    script(src="/scripts/includes/cardicons.js")
-    script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/includes/timeline.js")
+    script(src="/scripts/assignmentOverview.js")
 
 block append styles
-    link(href="/styles/flip.css" rel="stylesheet")
+    link(href="/styles/results.css" rel="stylesheet")
 
 block headerTitle
     h1
-        a(href="/group/" + assignment.group._id)= assignment.group.name
-    h2#subheader Assignment
+        a(href="/group/" + group._id)= group.name
+    h2#subheader Results by Assignment
 
 block groupContent
-    h2= assignment.name
-    if assignment.files.length == 0
-        p There are no hand-ins for this assignment yet!
+    if group.assignments.length == 0
+        p The course does not have any assignments
     else
-        .row
-            for file in assignment.files
-                +flipper()(class="group")
-                    +front-card() 
-                        if assignment.typ == "open" || assignment.due > file.timestamp
-                            .assignmentStateBulb.back-done
-                        else
-                            .assignmentStateBulb.back-late
-                        if file.feedback.length == 0
-                            .assignmentStateFeedback.back-normal
-                        else 
-                            .assignmentStateFeedback.back-done
-                        .yAlign
-                            h3.special= file.name
-                            h4#subheadersmall
-                                span #{file.students[0].name} #{file.students[0].surename} 
-                                - var done = file.students[0]._id
-                                for student in file.students
-                                    if student._id != done
-                                        span / #{student.name} #{student.surename} 
-                            +timeline(assignment.group.start, assignment.group.end, file.timestamp)(class="hidden")
-                    +back-card()
-                        +card-icons() 
-                            .bottom-icons
-                                +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
-
-    hr
-    .row
-        +cardLink-a("../../" + assignment.group.id, "Back to Course")
+        +accordion("accGroups")
+            for assignment in group.assignments
+                +acc-item("accGroups", assignment._id, assignment.name, theAssignment && theAssignment._id.toString() == assignment._id.toString(), assignment.files.length)(class="assignmentResultsGet" assignment=assignment._id group=group._id)
+                    .assignmentResultsSet(assignment=assignment._id)
+                        if theAssignment && assignment._id.toString() == theAssignment._id.toString()
+                            if theAssignment.files.length == 0
+                                p There are no handins for this assignment
+                            else 
+                                for file in theAssignment.files
+                                    .card-holder.col-md-3.col-sm-4.col-xs-6
+                                        .file-card
+                                            a.card(href="/file/" + file._id)
+                                                if assignment.typ == "open" || assignment.due > file.timestamp
+                                                    .assignmentStateBulb.back-done
+                                                else
+                                                    .assignmentStateBulb.back-late
+                                                if file.feedback.length == 0
+                                                    .assignmentStateFeedback.back-normal
+                                                else 
+                                                    .assignmentStateFeedback.back-done
+                                                .yAlign
+                                                    h3.special= assignment.name
+                                                    h4#subheadersmall
+                                                        span #{file.students[0].name} #{file.students[0].surename} 
+                                                        - var done = file.students[0]._id
+                                                        for student in file.students
+                                                            if student._id != done
+                                                                span / #{student.name} #{student.surename} 
+                                                    +timeline(group.start, group.end, file.timestamp)(class="hidden")

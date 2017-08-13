@@ -8,12 +8,14 @@ import * as mkdirp from 'mkdirp'
 import {Projects} from '../../autograder/Projects'
 import {Groups} from '../../database/tables/Groups'
 import {MkTables} from '../../database/MkTables'
+import {Tables} from '../../database/Table'
 import {Users} from '../../database/tables/Users'
 import {Files} from '../../database/tables/Files'
 import {Assignments} from '../../database/tables/Assignments'
 import {Future} from '../../functional/Future'
 import {IOMap} from '../../functional/IOMap'
 import {List} from '../../functional/List'
+import {Tuple} from '../../functional/Tuple'
 import {Result, TestJSON} from '../../autograder/Result'
 import {Render} from './Render'
 import {Sockets} from './Sockets'
@@ -42,7 +44,8 @@ export namespace Routes {
     const GROUP_USER = GROUP_USER_OVERVIEW + "/*"
     const FEEDBACK_LIST = GROUP_ANY + "/feedback"
     const FEEDBACK_LATEST = FEEDBACK_LIST + "/latest"
-    const GROUP_ASSIGNMENT = GROUP_ANY + "/assignment/*"
+    const GROUP_ASSIGNMENT_OVERVIEW = GROUP_ANY + "/assignment"
+    const GROUP_ASSIGNMENT = GROUP_ASSIGNMENT_OVERVIEW + "/*"
     const FILE = INDEX + "file"
     const FILE_ANY = FILE + "/*"
     const FILE_UPLOAD = GROUP + "/file-upload"
@@ -60,6 +63,7 @@ export namespace Routes {
         app.get(LOGOUT, logout)
         app.get(PRIVACY, showPrivacy)
         app.get(RESULTS, results)
+        app.get(GROUP_ASSIGNMENT_OVERVIEW, assignmentOver)
         app.get(GROUP_ASSIGNMENT, assignment)
         app.get(GROUP_USER_OVERVIEW, userOver)
         app.get(GROUP_USER, user)
@@ -106,8 +110,8 @@ export namespace Routes {
         if (!req.user) res.redirect("/")
         else if(data.length > 3) res.redirect("/group/" + group) 
         else Groups.getGroup(group).then(g => {
-            Files.forStudentInGroup(req.user.id, group).then(user => Render.withUser(req, res, "group/overview", { group: g, fullUser: user }),
-                e => Render.error(req, res, e.toString()))
+            if((g.admins as Tables.User[]).findIndex(a => a._id == req.user.id) >= 0) Render.withUser(req, res, "group/overviewAdmin", { group: g }) 
+            else Files.forStudentInGroup(req.user.id, group).then(userFiles => Render.withUser(req, res, "group/overview", { group: g, student: userFiles._1, files: userFiles._2 }), e => Render.error(req, res, e.toString()))
         }, e => Render.error(req, res, e.toString()))
     }
 
@@ -116,8 +120,8 @@ export namespace Routes {
         const usr = req.url.split("/")[4]
 
         if (!req.user) res.redirect("/")
-        else Groups.getGroup(group).flatMap(g => Files.forStudentInGroup2(usr, group).map(f => [g, f])).then(data =>
-            Render.withUser(req, res, "group/overviews/user", { files: data[1][0], group:data[0], student: data[1][1] }), err =>
+        else Groups.getGroup(group).flatMap(g => Files.forStudentInGroup(usr, group).map(userFiles => new Tuple(g, userFiles))).then(data =>
+            Render.withUser(req, res, "group/overviews/user", { files: data._2._2, group:data._1, student: data._2._1 }), err =>
                 Render.error(req, res, err))
     }
 
@@ -137,13 +141,27 @@ export namespace Routes {
 
     function assignment(req: Req, res: Res) {
         const data = req.url.split("/")
+        const group = data[2]
         const assignment = data[4]
 
         if (!req.user) res.redirect("/")
         else if(data.length > 5) res.redirect("/group/" + data[2] + "/assignment/" + assignment) 
-        else Assignments.instance.exec(Files.forAssignment(assignment)).then(ass =>
-            Render.withUser(req, res, "group/overviews/assignment", { assignment: ass, group: ass.group }), err =>
+        else Groups.getGroup(group).then(group => {
+            Assignments.instance.exec(Files.forAssignment(assignment)).then(ass => Render.withUser(req, res, "group/overviews/assignment", { theAssignment: ass, group: group }), err =>
                 Render.error(req, res, err))
+        }, err => Render.error(req, res, err))
+    }
+
+    function assignmentOver(req: Req, res: Res) {
+        const data = req.url.split("/")
+        const group = data[2]
+        const assignment = data[4]
+
+        if (!req.user) res.redirect("/")
+        else if(data.length > 5) res.redirect("/group/" + data[2] + "/assignment/" + assignment) 
+        else Groups.getGroup(group).then(group => {
+            Render.withUser(req, res, "group/overviews/assignment", { group: group })
+        }, err => Render.error(req, res, err))
     }
 
     function feedbackList(req: Req, res: Res) {
@@ -183,160 +201,6 @@ export namespace Routes {
         }, e => Render.error(req, res, e.toString()))
     }
 
-    //function users(req: Req, res: Res) {
-    //    const group = req.url.split("/")[2]
-    //    Groups.instance.populateStudents(group, g => {
-    //        const students = g.students as any as Tables.User[]
-    //        const admins = g.admins
-
-    //        if (admins.indexOf(req.user.id) >= 0) Render.withUser(req, res, "users", { users: students })
-    //        else Render.error(req, res, "You have insufficient rights to view this page")
-    //    }, error => Render.error(req, res, error))
-    //}
-
-    //function files(req: Req, res: Res) {
-    //    const group = req.url.split("/")[2]
-    //    Files.getAllForGroup(group, g => {
-    //        Render.withUser(req, res, "files", { group: g })
-    //    }, e => Render.error(req, res, e))
-    //}
-
-    //function showResults(location: string, user_index:number, group_index:number): (Req, Res) => void {
-    //    return (req: Req, res: Res) => {
-    //        const user = req.url.split("/")[user_index]
-    //        const group = req.url.split("/")[group_index]
-
-    //        Files.getForStudent(user, group, g => {
-    //            const asses = g.assignments as any as Tables.Assignment[]
-    //            Users.instance.getByID(user, student => {
-    //                Render.userResults(req, res, location, asses, g, student)
-    //            }, e => Render.error(req, res, e))
-    //        }, e => Render.error(req, res, e))
-    //    }
-    //}
-
-    //function showResult(req: Req, res: Res) {
-    //    const data = req.url.split("/")
-
-    //    const group = data[2]
-    //    const assignment = data[3]
-
-    //    if (!req.user) res.redirect("/")
-    //    else Files.instance.getDeepAssignment(req.user.id, assignment, f => {
-    //        let ext = f.extension
-    //        let token = azureStorage.generateSharedAccessSignature("handins", "projects/" + group + "/" + req.user.id, (f.assignment as any).project.id + "." + (typeof ext == "undefined" ? ".py" : ext), { AccessPolicy: { Permissions: "r", Expiry: azure.date.minutesFromNow(10) } })
-
-    //        Render.file(req, res, "file", f, group, token, false)
-    //    }, e => res.send(e))
-    //}
-
-    //function showResultOf(req: Req, res: Res) {
-    //    const data = req.url.split("/")
-
-    //    const group = data[2]
-    //    const assignment = data[3]
-    //    const user = data[4]
-
-    //    //check if req.user == admin for the group (not not possible though..., change design)
-    //    Files.instance.getDeepAssignment(user, assignment, f => {
-    //        let ext = f.extension
-    //        let token = azureStorage.generateSharedAccessSignature("handins", "projects/" + group + "/" + user, (f.assignment as any).project.id + "." + (typeof ext == "undefined" ? ".py" : ext), { AccessPolicy: { Permissions: "r", Expiry: azure.date.minutesFromNow(10) } })
-
-    //        Render.file(req, res, "file", f, group, token, true)
-    //    }, e => res.send(e))
-    //}
-
-    //function submitResults(req: Req, res: Res) {
-    //    const data = req.body
-    //    const date = new Date()
-    //    date.setHours(date.getHours() - 1)
-
-    //    //show error on hand in page not res.send new page
-    //    Groups.instance.getAndPopulate({ _id: data.group }, true, true, g => {
-    //        let group = g[0]
-    //        let assignment = group.assignments.find(a => a._id == data.assignment)
-
-    //        if (assignment && assignment.project._id == data.project) {
-    //            if (assignment.due > date) {
-                    
-    //                let students: List<Tables.UserTemplate> = List.apply([])
-
-    //                group.students.forEach(s => {
-    //                    let ref = data[s._id]
-    //                    if (ref) students = students.add(s)
-    //                })
-
-    //                let studentIDs = students.map(s => s._id).toArray()
-
-    //                const handedIn = (s: Tables.UserTemplate) => new Future<boolean>((res, rej) => {
-    //                    Files.instance.getAssignment(s._id, assignment._id, f => res(f.final), rej => res(false))
-    //                })
-
-    //                const traverse = IOMap.traverse(students, IOMap.apply)
-    //                const someoneHandedIn = IOMap.ListHelper.foldLeft(traverse, (b, bi: boolean) => b || bi, false).run(handedIn)
-    //                someoneHandedIn.then(nogo => {
-    //                    if (nogo) res.send("This assignment was alreaday handed in by you or your parnters!")
-    //                    else {
-    //                        function handleGrading() {
-    //                            const sess = req.session as ResultSession
-
-    //                            if (sess.result && sess.result[data.project]) {
-    //                                upload(sess.result[data.project], "py")
-    //                            } else res.send("No result found for assignment: " + assignment.project.name)
-    //                        }
-
-    //                        function handleFiles() {
-    //                            upload([], data.extension)
-    //                        }
-
-    //                        function upload(result: TestJSON<any>[], extension:string) {
-    //                            const time = new Date()
-    //                            const dir = "projects"
-    //                            const pending = "https://atlasprogramming.file.core.windows.net/handins/pending/" + req.user.id + "/" + data.project + "." + extension
-
-    //                            azureStorage.createDirectoryIfNotExists('handins', dir, (error, resu, response) => {
-    //                                const dir2 = dir + "/" + data.group
-
-    //                                azureStorage.createDirectoryIfNotExists('handins', dir2, (error, resu, response) => {
-    //                                    students.toArray().forEach((s, i) => {
-    //                                        let file = Tables.mkFile(s._id, assignment._id, time, studentIDs, result, s._id == req.user.id, extension, data[s._id])
-    //                                        Files.instance.create(file, () => {
-    //                                            azureStorage.createDirectoryIfNotExists('handins', dir2 + "/" + s._id, (error, resu, response) => {
-    //                                                azureStorage.startCopyFile(pending, "handins", dir2 + "/" + s._id, data.project + "." + extension, (error, resu, response) => {
-    //                                                    if (s._id == req.user.id) res.redirect("/results/" + group._id + "/" + assignment._id)
-    //                                                    if (i == students.length() - 1) {
-    //                                                        azureStorage.deleteFile("handins", "pending" + "/" + req.user.id, data.project + "." + extension, (e, r) => {
-    //                                                            if (e) console.log(e)
-    //                                                        })
-    //                                                    }
-    //                                                })
-    //                                            })
-    //                                        }, Table.error)
-    //                                    })
-    //                                })
-    //                            })
-    //                        }
-
-    //                        let type = data.projectType
-
-    //                        switch (type) {
-    //                            case "auto_code":
-    //                                handleGrading()
-    //                                break
-    //                            case "files":
-    //                                handleFiles()
-    //                                break
-    //                            default:
-    //                                res.send("No handler available for project with type: " + type)
-    //                                break
-    //                        }
-    //                    }
-    //                }, r => res.send("Unexpected error during validation of hand-in request!"))
-    //            } else res.send("The deadline has passed!")
-    //        } else res.send("Illigal assignment!")
-    //    }, Table.error)
-    //}
-
     function fileUpload(app: express.Express, root: string): Route {
         return (req, res) => {
             const busboy = (req as any).busboy
@@ -366,19 +230,4 @@ export namespace Routes {
             req.pipe(busboy)
         }
     }
-
-    // used to be in file uplaod
-    //  function upload(assignment: string, success: () => void) {
-    //     storage.createDirectoryIfNotExists('handins', "pending", (error, result, response) => {
-    //         storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id, (error, result, response) => {
-    //             storage.createDirectoryIfNotExists('handins', "pending" + "/" + req.user.id + "/" + assignment, (error, result, response) => {
-    //                 storage.createFileFromLocalFile('handins', "pending" + "/" + req.user.id + "/" + assignment, filename, filepath, (error, result, response) => {
-    //                     if (error) res.json({ success: false, err: error.message })
-    //                     else success()
-    //                     fs.unlink(filepath)
-    //                 })
-    //             })
-    //         })
-    //     })
-    // }
 }

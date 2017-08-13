@@ -6,6 +6,7 @@ import { Assignments } from './Assignments'
 import { Groups } from './Groups'
 import { Users } from './Users'
 import { Future } from '../../functional/Future'
+import { Tuple } from '../../functional/Tuple'
 
 class File extends Table<Tables.File> {
     create(a: MkTables.FileTemplate): Future<Tables.File> {
@@ -64,21 +65,8 @@ export namespace Files {
 
     export const instance = new File(Tables.File)
 
-    export function forStudent(student: string): Future<Tables.User> {
-        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateAllFiles(s))
-    }
-
-    //actually Future<[File[], User]>
-    export function forStudentInGroup2(student: string, group: string): Future<any[]> {
-        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles2(s, group).map(f => [f, s]))
-    }
-
-    export function forStudentInGroup(student: string, group: string): Future<Tables.User> {
-        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles(s, group))
-    }
-
-    export function forStudentInGroup3(student: string, group: string): Future<Tables.User> {
-        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles3(s, group))
+    export function forStudentInGroup(student: string, group: string): Future<Tuple<Tables.User, Users.FinalFile[]>> {
+        return Users.instance.exec(Users.instance.getByID(student)).flatMap(s => Users.instance.populateGroupFiles(s, group).map(files => new Tuple(s, files)))
     }
 
     export function forAssignment(assignment: string): Assignments.QueryOne {

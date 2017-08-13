@@ -13,7 +13,7 @@ block append styles
 block headerTitle
     h1
         a(href="/group/" + group._id )= group.name
-    h2#subheader Student Results
+    h2#subheader Results by Student
 
 block groupContent
     if group.students.length == 0
@@ -21,13 +21,14 @@ block groupContent
     else 
         +accordion("accGroups")
             for user in group.students
-                +acc-item("accGroups", user._id.replace(/\./g, ""), user.name + " " + user.surename + " (" + user._id + ")", student && user._id == student._id, user.groups[0].files.length)(class="userResultsGet" user=user._id group=group._id)
+                +acc-item("accGroups", user._id.replace(/\./g, ""), user.name + " " + user.surename + " (" + user._id + ")", student && user._id == student._id, user.groups.find(g => g.group == group._id).files.length)(class="userResultsGet" user=user._id group=group._id)
                     .userResultsSet(user=user._id)
                         if student && user._id == student._id
                             if files.length == 0
                                 p The student did not hand in any assignments yet!
                             else 
-                                for file in files
+                                for finalFiles in files
+                                    - var file = finalFiles.file
                                     .card-holder.col-md-3.col-sm-4.col-xs-6
                                         .file-card
                                             a.card(href="/file/" + file._id)

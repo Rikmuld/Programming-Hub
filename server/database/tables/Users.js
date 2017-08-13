@@ -14,9 +14,6 @@ class User extends Table_1.Table {
             if (index == -1)
                 a.groups.push({ group: g, files: [], active: true });
             else if (!a.groups[index].active) {
-                console.log("this must equal");
-                console.log(g);
-                console.log(a.groups[index].group);
                 a.groups[index].active = true;
             }
         }).flatMap(a => {
@@ -47,20 +44,6 @@ class User extends Table_1.Table {
             List_1.List.apply(user.groups).filter(g => g.group == group).head(null).files.push({ file: file, final: false });
         });
     }
-    populateAllFiles(user) {
-        return Future_1.Future.lift(this.model.populate(user, {
-            path: "groups.files.file groups.group"
-        }));
-    }
-    populateFiles(user) {
-        return Future_1.Future.lift(this.model.populate(user, {
-            path: "groups.files.file",
-            options: {
-                select: "name timestamp feedback assignment",
-                populate: "assignment"
-            }
-        }));
-    }
     getFullUser(user) {
         return Future_1.Future.lift(this.getByID(user).populate("groups.group").populate({
             path: "groups.files.file",
@@ -69,16 +52,18 @@ class User extends Table_1.Table {
             }
         }).exec());
     }
-    populateGroupFiles2(user, group) {
-        return Files_1.Files.instance.exec(Files_1.Files.instance.populateAssignment(Files_1.Files.instance.getByIDs(user.groups.filter(g => g.group == group)[0].files.map(f => f.file))), false);
-    }
     populateGroupFiles(user, group) {
-        user.groups = [user.groups.find(g => g.group == group)];
-        return this.populateAllFiles(user);
-    }
-    populateGroupFiles3(user, group) {
-        user.groups = [user.groups.find(g => g.group == group)];
-        return this.populateFiles(user);
+        const files = user.groups.find(g => g.group == group).files;
+        const areFinal = files.map(f => f.final);
+        const fileIds = files.map(f => f.file.toString());
+        return Future_1.Future.lift(Files_1.Files.instance.getByIDs(fileIds).populate("assignment").exec()).map(f => {
+            return f.map(file => {
+                return {
+                    file: file,
+                    final: areFinal[fileIds.indexOf(file._id.toString())]
+                };
+            });
+        });
     }
     makeFinal(student, group, file) {
         return this.updateOne(student, s => s.groups.find(g => g.group == group).files.find(f => f.file == file).final = true);

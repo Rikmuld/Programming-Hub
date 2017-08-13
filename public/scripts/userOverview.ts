@@ -5,15 +5,15 @@ $(document).ready(() => {
         const hasData = $(".userResultsSet[user='" + user + "']").html().length > 0
 
         if(!hasData) socket.emit("getUserResults", group, user)
-
-        console.log(user, group, hasData)
     })
 
     socket.on("userResultsGot", setUserResults)
 })
 
 function setUserResults(html: string, user: string) {
-    $(".userResultsSet[user='" + user + "']").html(html)
-
-    //setup timeline, only those unset so far
+    const par = $(".userResultsSet[user='" + user + "']")
+    par.html(html)
+    par.find(".timeline").each(function() {
+        setupTimeline($(this))
+    })
 }

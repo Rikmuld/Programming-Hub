@@ -4,6 +4,7 @@ const Table_1 = require("../Table");
 const Assignments_1 = require("./Assignments");
 const Groups_1 = require("./Groups");
 const Users_1 = require("./Users");
+const Tuple_1 = require("../../functional/Tuple");
 class File extends Table_1.Table {
     create(a) {
         return super.create(a).flatMap(file => {
@@ -49,23 +50,10 @@ class File extends Table_1.Table {
 var Files;
 (function (Files) {
     Files.instance = new File(Table_1.Tables.File);
-    function forStudent(student) {
-        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateAllFiles(s));
-    }
-    Files.forStudent = forStudent;
-    //actually Future<[File[], User]>
-    function forStudentInGroup2(student, group) {
-        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles2(s, group).map(f => [f, s]));
-    }
-    Files.forStudentInGroup2 = forStudentInGroup2;
     function forStudentInGroup(student, group) {
-        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles(s, group));
+        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles(s, group).map(files => new Tuple_1.Tuple(s, files)));
     }
     Files.forStudentInGroup = forStudentInGroup;
-    function forStudentInGroup3(student, group) {
-        return Users_1.Users.instance.exec(Users_1.Users.instance.getByID(student)).flatMap(s => Users_1.Users.instance.populateGroupFiles3(s, group));
-    }
-    Files.forStudentInGroup3 = forStudentInGroup3;
     function forAssignment(assignment) {
         return Assignments_1.Assignments.instance.populateFiles(Assignments_1.Assignments.instance.getByID(assignment));
     }
