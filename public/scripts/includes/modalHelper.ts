@@ -375,7 +375,7 @@ namespace ModalValidators {
 
     export function idNotExists(id:string, error:string): (modal: ModalFormValidator, ...field: Field[]) => string[] {
         return (field) => {
-            if ($("#" + id).size() > 0) return [error]
+            if ($("#" + id).length > 0) return [error]
             else return []
         }
     }

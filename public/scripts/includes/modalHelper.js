@@ -339,7 +339,7 @@ var ModalValidators;
     ModalValidators.validURL = validURL;
     function idNotExists(id, error) {
         return (field) => {
-            if ($("#" + id).size() > 0)
+            if ($("#" + id).length > 0)
                 return [error];
             else
                 return [];

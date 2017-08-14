@@ -10,6 +10,17 @@ block append scripts
 block append styles
     link(href="/styles/results.css" rel="stylesheet")
 
+block nav_right
+    +navbar-a("/group/" + group._id, group.name)
+
+    +navbar-dropdown("Feedback", "feedbackDropdown")
+        +dropdown-a("/group/" + group._id + "/feedback/latest", "Feedback Oldest Handin")
+        +dropdown-a("/group/" + group._id + "/feedback", "Feedback List")
+
+    +navbar-dropdown("Results", "resultsDropdown")
+        +dropdown-a("/group/" + group._id + "/user", "Results by Student")
+        +dropdown-a("/group/" + group._id + "/assignment", "Result by Assignment")
+
 block headerTitle
     h1
         a(href="/group/" + group._id )= group.name

@@ -9,52 +9,38 @@ block append scripts
     script
         |$('.datepicker').datepicker();
     script(src="/scripts/includes/timeline.js")
-    script(src="/scripts/includes/cardicons.js")
-
-block append styles
-    link(href="/styles/flip.css" rel="stylesheet")
 
 block content
     .container
-        if user.admin
-            h2 My Courses
-        else 
-            h2 Enrolled Courses
-        #classes
-            if groups.length == 0
+        .section-container
+            if user.admin
+                h2 My Courses
+            else 
+                h2 Enrolled Courses
+            if courses.length == 0
                 if user.admin
-                    p You are not assigned to any course yet! You can create one with the button below.
+                    p.lead You are not assigned to any course yet! You can create one with the button below.
                 else 
-                    p You are not yet enrolled in any courses!
-            .row.groups
-                for group in groups
-                    +flipper()(class="group")
-                        +front-card()
-                            .yAlign
-                                h3.special= group.name
-                                +timeline(group.start, group.end)
-                        +back-card()
+                    p.lead You are not yet enrolled in any courses!
+            else
+                +card-container()
+                    for group in courses
+                        +card()
+                            +card-simple(group.name, "/group/"+group._id)
+                            +card-timeline(group.start, group.end)
                             +card-icons()
+                                a.btn.btn-success.btn-card-icon.cpointer(href="/group/" + group._id)
+                                    span.oi.oi-home
                                 if user.admin
-                                    .top-icons
-                                        +card-icon-a("/group/"+group._id, 'Course Overview', 'home')
-                                        +card-icon-a("/group/"+group._id + "/feedback/latest", 'Feedback Oldest Handin', 'pencil')
-                                        +card-icon-a("/group/"+group._id + "/user", 'View Results by Student', 'user')
-                                    .bottom-icons
-                                        +card-icon("Edit Course", 'cog')(class="manipulate" data-toggle="modal" data-target="#updateCourse" target="#update_courseName" attr-data='{"value": "#{group.name}", "start": "#{group.start}", "end":"#{group.end}", "course": "#{group._id}"}')
-                                        +card-icon("Remove Course", 'trash')(class="manipulate" data-toggle="modal" data-target="#removeCourse" target="#removeCourseName" text-data="#{group.name}" attr-data='{"course": "#{group._id}"}')
-                                        +card-icon-a("/group/"+group._id + "/assignment", 'View Results by Assignment', 'list-alt')
-                                else
-                                    .bottom-icons
-                                        +card-icon-a("/group/"+group._id, 'Course Overview', 'home')
-                                        +card-icon("Generate Results Overview", 'list-alt')
-        hr
-        if user.admin
-            .row
-                +cardLink("Create a New Course")(data-toggle="modal" data-target="#addCourse")
-        else
-            .row
-                +cardLink-a("/results", "View all Results")
+                                    button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#updateCourse" target="#update_courseName" attr-data='{"value": "#{group.name}", "start": "#{group.start}", "end":"#{group.end}", "course": "#{group._id}"}')
+                                        span.oi.oi-cog
+                                    button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#removeCourse" target="#removeCourseName" text-data="#{group.name}" attr-data='{"course": "#{group._id}"}')
+                                        span.oi.oi-trash
+
+            if user.admin
+                .section-buttons
+                    button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#addCourse")
+                        span.oi.oi-plus
 
     if user.admin
         mixin courseModal(id)

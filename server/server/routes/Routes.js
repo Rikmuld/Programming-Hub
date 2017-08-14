@@ -15,7 +15,7 @@ const Render_1 = require("./Render");
 var Routes;
 (function (Routes) {
     const INDEX = "/";
-    const LOGOUT = INDEX + "logout";
+    const LOGOUT = INDEX + "auth/logout";
     const PRIVACY = INDEX + "legal/privacy";
     const AUTH = INDEX + "auth/google";
     const AUTH_CALLBACK = AUTH + "/callback";
@@ -75,7 +75,7 @@ var Routes;
     }
     function index(req, res) {
         if (req.user)
-            Groups_1.Groups.getGroups(req.user.id).then(lg => Render_1.Render.withUser(req, res, "hub", { groups: lg }), e => Render_1.Render.error(req, res, e.toString()));
+            Groups_1.Groups.getGroups(req.user.id).then(lg => Render_1.Render.withUserCourses(req, res, "hub", lg, {}), e => Render_1.Render.error(req, res, e.toString()));
         else
             Render_1.Render.withUser(req, res, "hub");
     }

@@ -33,7 +33,7 @@ export namespace Routes {
     }
 
     const INDEX = "/"
-    const LOGOUT = INDEX + "logout"
+    const LOGOUT = INDEX + "auth/logout"
     const PRIVACY = INDEX + "legal/privacy"
     const AUTH = INDEX + "auth/google"
     const AUTH_CALLBACK = AUTH + "/callback"
@@ -99,7 +99,7 @@ export namespace Routes {
     }
 
     function index(req: Req, res: Res) {
-        if (req.user) Groups.getGroups(req.user.id).then(lg => Render.withUser(req, res, "hub", { groups: lg }), e => Render.error(req, res, e.toString()))
+        if (req.user) Groups.getGroups(req.user.id).then(lg => Render.withUserCourses(req, res, "hub", lg, {}), e => Render.error(req, res, e.toString()))
         else Render.withUser(req, res, "hub")
     }
 

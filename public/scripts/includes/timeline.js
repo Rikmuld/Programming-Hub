@@ -11,20 +11,27 @@ function setupTimeline(timeline) {
     const begin = 0;
     const end = dateDiff(mindate, maxdate);
     const now = (diffNow < 0) ? 0 : diffNow;
+    const width = now / end;
     timeline.attr("aria-valuenow", now);
     timeline.attr("aria-valuemin", begin);
     timeline.attr("aria-valuemax", end);
-    timeline.css("width", ((now / end) * 100) + "%");
-    const p = document.createElement("p");
-    p.innerText = nowTry ? dateString(nowdate, mindate.getFullYear() != maxdate.getFullYear()) : datesString(mindate, maxdate);
-    timeline.parent().parent().append(p);
+    timeline.css("width", (width * 100) + "%");
+    const str = nowTry ? dateString(nowdate, mindate.getFullYear() != maxdate.getFullYear()) : datesString(mindate, maxdate);
+    if (width >= 0.35) {
+        $(timeline).text(str);
+    }
+    else {
+        const p = document.createElement("span");
+        p.innerText = str;
+        timeline.parent().append(p);
+    }
 }
 function dateDiff(begin, end) {
     const diff = end.getTime() - begin.getTime();
     return Math.floor(diff / (1000 * 3600 * 24));
 }
 function datesString(from, to) {
-    const sameYear = from.getFullYear() == to.getFullYear();
+    const sameYear = true;
     return dateString(from, !sameYear) + " - " + dateString(to, !sameYear);
 }
 function dateString(date, year) {

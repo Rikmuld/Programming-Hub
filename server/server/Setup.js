@@ -64,6 +64,7 @@ var Setup;
         return db;
     }
     Setup.setupDatabase = setupDatabase;
+    const emailExclusions = ["rikmuld@gmail.com", "rikmuldjp@gmail.com", "ruudvandamme55@gmail.com"];
     function setupAuthGoogle(googleID, googleSecret) {
         const googleLogin = {
             clientID: googleID,
@@ -74,7 +75,7 @@ var Setup;
         const handleLogin = (request, accessToken, refreshToken, profile, done) => {
             process.nextTick(() => {
                 //create sign up with email for teachers
-                if (profile._json.domain == "student.utwente.nl" || profile.email == "ruudvandamme55@gmail.com" || profile.email == "rikmuld@gmail.com") {
+                if (profile._json.domain == "student.utwente.nl" || emailExclusions.indexOf(profile.email) >= 0) {
                     Users_1.Users.getByGProfile(profile).then(u => done(null, Users_1.Users.simplify(u)), e => done(null, null));
                 }
                 else {

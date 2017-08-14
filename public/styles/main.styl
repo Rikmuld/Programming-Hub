@@ -1,4 +1,70 @@
-﻿//variables
+﻿.section-container
+	padding-top 3rem
+	padding-bottom 5rem
+	text-align center
+
+.btn-section
+	line-height: 1
+	padding 1.5rem
+	border-radius: 20%
+
+.section-buttons
+	margin-top 3rem
+
+.btn-card-icon
+	line-height 1
+	padding 0.25rem
+	border-radius: 20%
+	font-size 0.75rem
+	margin 2px
+	width 22px
+
+.cpointer
+	cursor: pointer
+
+.card-simple
+	.card-title
+		margin-bottom 0rem
+		a
+			color inherit
+	p
+		margin-bottom 0px
+
+.card-timeline
+	height: 16px
+	.timeline-container
+		height 16px
+	.progress
+		border-radius: 0rem 0rem 0.25rem 0.25rem
+		position: absolute
+		width: calc(100% + 2px)
+		left: -1px
+		span
+			position: absolute
+			width 100%
+
+.card-container
+	margin-top: 1.5rem
+	.card
+		margin-top 15px
+		margin-bottom 15px
+
+.card
+	.card-icons
+		position absolute
+		right 5px
+		top 5px
+		width 52px
+		text-align right
+
+.card-date
+	border-top: 1px solid rgba(0, 0, 0, 0.125)
+	padding-left 1.25rem
+	padding-right 1.25rem
+
+//remove below
+
+//variables
 
 blueish = rgb(0, 129, 221)
 
@@ -37,15 +103,11 @@ body, html
 div
 	box-sizing border-box
 
-body
-	background-color #fefefe
-
 .wrapper
 	min-height 100%
 	width 100%
 	position relative
 	overflow auto
-	background-color #f5f5f5
 
 .btn:focus, .btn:active
 	outline none !important
@@ -59,11 +121,8 @@ body
 	bottom 10px
 	width 100%
 
-#header
-	height 105px
-	background-color #e2e2e2
-	-webkit-box-shadow: 0px 5px 10px 0px rgba(0,0,0,0.25)
-	box-shadow: 0px 5px 10px 0px rgba(0,0,0,0.25)
+//TODO readd size
+//#header
 
 //headings
 
@@ -164,19 +223,6 @@ textarea
 	:not(:last-child)
 		border-right 1px solid rgba(0, 0, 0, .05)
 
-.card
-	background-color white
-	padding 15px
-	h3
-		margin-top 0px
-		margin-bottom 20px
-		text-align center
-	text-align center
-	//border-radius 5px
-	box-shadow: 0 5px 15px rgba(0,0,0,.1);
-	-webkit-box-shadow: 0 5px 15px rgba(0,0,0,.1);
-	transition 0.2s
-
 .cardLink
 	h3
 		margin-top 10px
@@ -241,9 +287,6 @@ date
 	a
 		color #333
 	margin-top 10px
-
-h1, h2, h3
-	font-family: Open Sans
 
 .overviewFile:not(:first-child)
 	page-break-before: always

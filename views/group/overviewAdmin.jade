@@ -17,6 +17,17 @@ block append scripts
     script(src="/scripts/includes/js/dropzone.min.js")
     script(src="/scripts/includes/dropzoneCustom.js")
 
+block nav_right
+    +navbar-a-active("", group.name)
+
+    +navbar-dropdown("Feedback", "feedbackDropdown")
+        +dropdown-a(group.id + "/feedback/latest", "Feedback Oldest Handin")
+        +dropdown-a(group.id + "/feedback", "Feedback List")
+
+    +navbar-dropdown("Results", "resultsDropdown")
+        +dropdown-a(group.id + "/user", "Results by Student")
+        +dropdown-a(group.id + "/assignment", "Result by Assignment")
+
 block append styles
     link(href="/styles/flip.css" rel="stylesheet")
     link(href="/styles/dropzone.min.css" rel="stylesheet")
@@ -24,86 +35,68 @@ block append styles
 
 block groupContent
     -var users = []
-    #finalWarning.hidden
-        .alert.alert-info
-            p
-                b There are non final assignments! 
-            p 
-                |Make sure to either accept or decline all non final assignments (assignments handed in for you by someone else). 
-                br
-                |You can recognize these handins by the light blue dot.
-        hr
-    h1#group_data(start=group.start end=group.end group=group._id)= group.name
-    
-    if group.assignments.length > 0
-        h2 Assignments
-        .row.groups
-            for ass in group.assignments
-                - var open = ass.typ == "open"
-                +flipper()(class="group")
-                    +front-card()
-                        .yAlign
-                            h3.special= ass.name
-                            .timeline-container
-                                if open
-                                    +timeline(group.start, group.end)(class="hidden" id="openExists")
-                                else
-                                    +timeline(group.start, group.end, ass.due)(class="hidden")
-                    +back-card()
-                        +card-icons()
-                            if ass.link.length > 0
-                                .top-icons
-                                    +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
-                                    +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
-                                .bottom-icons
-                                    +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
-                                    +card-icon-a("http://" + ass.link, 'Additional Info', 'info-sign')(target='_blank')
-                            else
-                                .bottom-icons
-                                    +card-icon-a(group._id + "/assignment/" + ass._id, 'Results', 'list-alt')
-                                    +card-icon('Edit Assignment', 'cog')(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
-                                    +card-icon('Remove Assignment', 'trash')(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
-    else
-        h2 Assignments
-        p No assignments were made yet!
 
-    hr
-    .row
-        +cardLink("Create a New Assignment")(data-toggle="modal" data-target="#addAssignment")
-        +cardLink-a(group.id + "/feedback", "To-Feedback List")
-        +cardLink-a(group._id + "/feedback/latest", "Feedback Oldest Hand-in")
-        +cardLink-a(group.id + "/user", "View Results by Student")
-        +cardLink-a(group.id + "/assignment", "View Results by Assignment")
-    hr
-    h2 Users
-    .row
-        .col-sm-6
-            +cardTable("Students")
+    #group_data(start=group.start end=group.end group=group._id)
+    
+    .section-container
+        h2 Assignments
+        if group.assignments.length > 0
+            +card-container()
+                for ass in group.assignments
+                    +card()
+                        +card-simple(ass.name, group._id + "/assignment/" + ass._id)
+                        .card-date.text-center
+                            if ass.typ != "open"
+                                span.small= ass.due.toDateString()
+                            else 
+                                span.small#openExists No Deadline
+                        +card-icons()
+                            a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
+                                    span.oi.oi-list
+                            button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                span.oi.oi-cog
+                            if ass.link.length > 0
+                                a.btn.btn-info.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
+                                    span.oi.oi-info
+                            button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                span.oi.oi-trash
+        else
+            p.lead This course does not have any assignments!
+
+        .section-buttons
+            button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#addAssignment")
+                span.oi.oi-plus
+    
+    .section-container
+        h2 Students
+        if group.students.length > 0
+            +card-container
                 for usr in group.students
                     -users.push('"' + usr._id + '"')
-                    +cardTableFlip(usr.name + " " + usr.surename)
-                        if usr._id == user.id
-                            p This is you :)
-                        else
-                            .bottom-icons
-                                +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
-                                +flip-table-a(group._id + "/user/" + usr._id, "list-alt")
-                                +flip-table-icon("trash")(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
+                    +card()
+                        +card-simple(usr.name + " " + usr.surename, group._id + "/user/" + usr._id)
+                        if usr._id != user.id
+                            +card-icons()
+                                a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/user/" + usr._id)
+                                        span.oi.oi-list
+                                a.btn.btn-primary.btn-card-icon.cpointer(href="mailto:" + usr._id + "@student.utwente.nl")
+                                        span.oi.oi-envelope-open
+                                button.btn.btn-danger.btn-card-icon.cpointer(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
+                                    span.oi.oi-trash
+        else    
+            p.lead This course does not have any students!
 
-        .col-sm-6
-            +cardTable("Instructors")
-                for usr in group.admins
-                    -users.push('"' + usr._id + '"')
-                    +cardTableFlip(usr.name + " " + usr.surename)
-                        if usr._id == user.id
-                            p This is you :)
-                        else
-                            p Nothing for now.
-    hr
-    .row
-        +cardLink("Add Users")(data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
-        - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
-        +cardLink-a("mailto:" + mailStudents, "Mail Students")
+        for usr in group.admins
+            -users.push('"' + usr._id + '"')
+
+        .section-buttons
+            button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
+                span.oi.oi-plus
+            if group.students.length > 0
+                - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
+                a.btn.btn-outline-primary.btn-section.ml-2(href="mailto:" + mailStudents)
+                    span.oi.oi-envelope-open
+
 
     mixin assignmentModal(id, changeType)
         .row

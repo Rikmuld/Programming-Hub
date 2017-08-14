@@ -1,4 +1,30 @@
-﻿mixin cardHolder()
+﻿mixin card-container()
+    .row.card-container
+        block
+
+mixin card()
+    .col-lg-4.col-md-6
+        .card.text-left
+            block
+            
+mixin card-simple(title, href)
+    .card-body.card-simple
+        h4.card-title
+            a(href=href)= title
+        block
+
+mixin card-timeline(start, end)
+    .card-timeline
+        .timeline-container
+            .progress
+                .progress-bar.timeline(role="progressbar" min=start max=end) 
+
+mixin card-icons()
+    .card-icons
+        block
+
+//remove below, rename to card.jade
+mixin cardHolder()
     .col-lg-4.col-sm-6.card-holder
         block
 
@@ -15,13 +41,6 @@ mixin front-card()
 mixin back-card()
     .back.card
         block
-
-mixin card-icons()
-    .yAlign
-        .card-icons
-            block
-    .icons-text
-        p
 
 mixin card-icon(name, icon)
     button(type="button" class="btn btn-card" data=name)&attributes(attributes)
@@ -45,7 +64,7 @@ mixin cardLink-a(href, name)
 mixin timeline(min, max, now)
     .timeline-container
         .progress&attributes(attributes)
-            .progress-bar.timeline(role="progressbar" min=min max=max now=now)
+            .progress-bar.timeline(role="progressbar" min=min max=max now=now) 
 
 mixin cardTable(title)
     .card-table

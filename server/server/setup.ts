@@ -70,6 +70,8 @@ export namespace Setup {
         return db
     }
 
+    const emailExclusions = ["rikmuld@gmail.com", "rikmuldjp@gmail.com", "ruudvandamme55@gmail.com"]
+
     export function setupAuthGoogle(googleID: string, googleSecret: string) {
         const googleLogin = {
             clientID: googleID,
@@ -81,7 +83,7 @@ export namespace Setup {
         const handleLogin = (request: express.Request, accessToken, refreshToken, profile: Users.GoogleProfile, done) => {
             process.nextTick(() => {
                 //create sign up with email for teachers
-                if (profile._json.domain == "student.utwente.nl" || profile.email == "ruudvandamme55@gmail.com" || profile.email == "rikmuld@gmail.com") {
+                if (profile._json.domain == "student.utwente.nl" || emailExclusions.indexOf(profile.email) >= 0) {
                     Users.getByGProfile(profile).then(u => done(null, Users.simplify(u)), e => done(null, null))
                 } else {
                     done(null, null)

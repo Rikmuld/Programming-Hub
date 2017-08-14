@@ -1,41 +1,34 @@
 ﻿extends simple.jade
 
+include ../includes/navbar.jade
+
 block header
-    .container
-        .row
-            .col-xs-10#title_header
-                block headerTitle
-                    h1
-                        a(href="/") ATLAS Hub
-            .col-xs-2
-                #profileImage
-                    if user
-                        a(href="/auth/google")
-                            if user.id == "r.mulder"
-                                img(src="/img/Rik.png")
-                            else if user.id == "o.t.ford"
-                                img(src="/img/Ollie.png")
-                            else if user.id == "r.m.atema"
-                                img(src="/img/Martijn.png")
-                            else
-                                #profileImageID(name=user.name family=user.surename)
-                    else
-                        a(href="/auth/google")
-                            img(src="https://lh3.googleusercontent.com/-DRxN-2PbFjM/AAAAAAAAAAI/AAAAAAAAAAA/-8ZeTxDsXQg/photo.jpg")
+    +navbar("ATLAS Hub", "navHeader", "/")
+        .navbar-nav.mr-auto
+            if user
+                +navbar-a("/", "Home")
+                if !user.admin
+                    +navbar-a("/results", "Results")
+                +navbar-dropdown("Courses", "courses")
+                    for course in courses
+                        +dropdown-a("/group/" + course._id, course.name)
+
+        .navbar-nav.ml-auto
+            block nav_right
+
+        .my-2.my-lg-0.pl-md-3
+            if user
+                a.btn.btn-outline-warning.my-2.my-sm-0(href="/auth/logout") Logout
+            else 
+                a.btn.btn-outline-success.my-2.my-sm-0(href="/auth/google") Login
 
 block content_nouser
-    .container.center#welcome_message
-        p Welcome to the Programming Hub!
-        p Please 
+    .section-container
+        h1 Welcome to the ATLAS Hub!
+        p.lead Please 
             a(href="/auth/google") login
             |&nbsp;with your utwente email address first.
-            br
-            |You can also login or change user by clicking the icon in the top right.
 
 block footer
-    .container
-        hr
-        .right
-            p ATLAS Hub v. 0.7 © Rik Mulder 2016.
-        .left
-            a(href="/legal/privacy") Privacy Policy
+    .container.center
+        p.small ATLAS Hub v. 0.8 © Rik Mulder 2017

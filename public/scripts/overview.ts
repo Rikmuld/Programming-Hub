@@ -77,10 +77,6 @@ $(document).ready(() => {
     uploadFiles.addValidation(new Validator(ModalValidators.or(s => s.length > 0, "Either add some comments, or upload and select at least one file!"), "comments", "files"))
 
     socket.on('usersGot', usersGot)
-
-    if ($(".back-final").size() > 0) {
-        $("#finalWarning").removeClass("hidden")
-    } 
 })
 
 function getGroupId() {

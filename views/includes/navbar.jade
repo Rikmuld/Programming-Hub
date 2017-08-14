@@ -1,0 +1,25 @@
+mixin navbar(brand, id, href)
+    nav.navbar.navbar-expand-md.navbar-dark.bg-dark
+        a.navbar-brand(href=href)= brand
+        button.navbar-toggler(type="button" data-toggle="collapse" data-target="#" + id aria-controls=id aria-expanded="false" aria-label="Toggle navigation")
+            span.navbar-toggler-icon
+
+        .collapse.navbar-collapse(id=id)
+            block
+
+mixin navbar-a(href, name)
+    li.nav-item
+        a.nav-link(href=href)= name
+
+mixin navbar-a-active(href, name)
+    li.nav-item
+        a.nav-link.active(href=href)= name
+
+mixin navbar-dropdown(name, id)
+    li.nav-item.dropdown
+        a.nav-link.dropdown-toggle(href="javascript:void()" id=id data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")= name
+        .dropdown-menu(aria-labelledby=id)
+            block
+    
+mixin dropdown-a(href, name)
+    a.dropdown-item(href=href)= name

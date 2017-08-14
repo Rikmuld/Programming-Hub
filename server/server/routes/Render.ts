@@ -8,11 +8,22 @@ export namespace Render {
     export type Suc = (html: string) => void
     export type Err = (err: Error) => void
 
-    export function withUser(req: Routes.Req, res: Routes.Res, loc: string, data: {} = {}) {
+    export function withUserCourses(req: Routes.Req, res: Routes.Res, loc: string, courses: {}, data: {}) {
         const sendData = data
         sendData['user'] = req.user
+        sendData['courses'] = courses
 
         res.render(loc, sendData)
+    }
+
+    export function withUser(req: Routes.Req, res: Routes.Res, loc: string, data: {} = {}) {
+        const user = req.user
+
+        if(user){
+            Groups.getGroups(user.id).then(groups => {
+                withUserCourses(req, res, loc, groups, data)
+            }, err => error(req, res, err))
+        } else withUserCourses(req, res, loc, [], {})
     }
 
     export function error(req: Routes.Req, res: Routes.Res, err: string) {

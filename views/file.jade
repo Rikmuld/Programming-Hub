@@ -12,6 +12,22 @@ block append scripts
 block append styles
     link(href="/styles/flip.css" rel="stylesheet")
 
+block nav_right
+    if file.assignment && file.assignment.group 
+        if user.admin
+            +navbar-a("/group/" + file.assignment.group._id, file.assignment.group.name)
+
+            +navbar-dropdown("Feedback", "feedbackDropdown")
+                +dropdown-a("/group/" + file.assignment.group._id  + "/feedback/latest", "Feedback Oldest Handin")
+                +dropdown-a("/group/" + file.assignment.group._id  + "/feedback", "Feedback List")
+
+            +navbar-dropdown("Results", "resultsDropdown")
+                +dropdown-a("/group/" + file.assignment.group._id  + "/user", "Results by Student")
+                +dropdown-a("/group/" + file.assignment.group._id  + "/assignment", "Result by Assignment")
+        else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
+            +navbar-a("/group/" + file.assignment.group._id, file.assignment.group.name)
+
+
 if file.assignment
     block headerTitle
         h1
@@ -86,13 +102,6 @@ block content
                 +cardLink("Update Feedback")(data-toggle="modal" data-target="#feedbackModal")
                 - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")
                 +cardLink-a("mailto:" + mailStudents, "Mail Students")
-                if file.assignment && file.assignment.group
-                    +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
-                    +cardLink-a("/group/" + file.assignment.group._id + "/assignment/" + file.assignment._id, "Go to Assignment")
-                    +cardLink-a("/group/" + file.assignment.group._id + "/feedback", "Go to Feedback List")
-                    +cardLink-a("/group/" + file.assignment.group._id + "/feedback/latest", "Feedback Next Hand-in")
-            else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0 && file.assignment && file.assignment.group
-                    +cardLink-a("/group/" + file.assignment.group._id, "Go to Course")
 
     +modal("feedbackModal", "Feedback Hand-in", "primary", "Update Feedback", false)
         .form-group
