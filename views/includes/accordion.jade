@@ -1,18 +1,19 @@
-mixin accordion(id)
-    .panel-group(id=id role="tablist" aria-multiselectable="true")
-        block
-
-mixin acc-item(parID, id, heading, isopen, info)
-    .panel.panel-default
-        .panel-heading(role="tab" id=id)
-            h4.panel-title
-                a(role="button" data-toggle="collapse" data-parent=parID href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)= heading
-                span.right= info
-        if isopen
-            .panel-collapse.collapse.in(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
-                .panel-body
-                    block
+mixin acc-item(id, heading, isopen, info, nomargin)
+    .section-container
+        if !nomargin
+            h2= heading
+            p.lead= info
+        else if info.length == 0
+            h2.mb-0= heading
         else 
-            .panel-collapse.collapse(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
-                .panel-body
-                    block
+            h2= heading
+            p.lead.mb-0= info
+        if isopen
+            .collapse.show(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
+                block
+        else 
+            .collapse(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
+                block
+        .section-buttons
+            button.btn.btn-outline-primary.btn-section.cpointer(role="button" data-toggle="collapse" href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)
+                span.oi.oi-collapse-down

@@ -21,38 +21,40 @@ block nav_right
         +dropdown-a("/group/" + group._id + "/user", "Results by Student")
         +dropdown-a("/group/" + group._id + "/assignment", "Result by Assignment")
 
-block headerTitle
-    h1
-        a(href="/group/" + group._id )= group.name
-    h2#subheader Results by Student
-
 block groupContent
     if group.students.length == 0
-        p The course does not have any students
+        .section-container
+            h2 Results
+            p.lead The course does not have any students
     else 
-        +accordion("accGroups")
-            for user in group.students
-                +acc-item("accGroups", user._id.replace(/\./g, ""), user.name + " " + user.surename + " (" + user._id + ")", student && user._id == student._id, user.groups.find(g => g.group == group._id).files.length)(class="userResultsGet" user=user._id group=group._id)
+        for user in group.students
+            if user.groups.find(g => g.group == group._id).files.length == 0
+                .section-container
+                    h2= user.name + " " + user.surename + " (" + user._id + ")"
+                    p.lead The student did not hand in any assignments yet!
+            else
+                +acc-item(user._id.replace(/\./g, ""), user.name + " " + user.surename + " (" + user._id + ")", student && user._id == student._id, "Total submissions: " + user.groups.find(g => g.group == group._id).files.length, true)(class="userResultsGet" user=user._id group=group._id)
                     .userResultsSet(user=user._id)
                         if student && user._id == student._id
-                            if files.length == 0
-                                p The student did not hand in any assignments yet!
-                            else 
+                            +card-container()
                                 for finalFiles in files
                                     - var file = finalFiles.file
-                                    .card-holder.col-md-3.col-sm-4.col-xs-6
-                                        .file-card
-                                            a.card(href="/file/" + file._id)
-                                                if file.assignment
-                                                    if file.assignment.typ == "open" || file.assignment.due > file.timestamp
-                                                        .assignmentStateBulb.back-done
-                                                    else
-                                                        .assignmentStateBulb.back-late
-                                                    if file.feedback.length == 0
-                                                        .assignmentStateFeedback.back-normal
-                                                    else 
-                                                        .assignmentStateFeedback.back-done
-                                                    .yAlign
-                                                        h3.special= file.assignment.name
-                                                        h4#subheadersmall= file.name
-                                                        +timeline(group.start, group.end, file.timestamp)(class="hidden")
+                                    +card()
+                                        +card-simple(file.assignment.name, "/file/" + file._id)
+                                            span= file.name
+                                        .card-date-sepperator
+                                        if file.assignment.typ != "open"
+                                            if file.timestamp > file.assignment.due
+                                                .card-date.d-flex.card-date-done.bg-warning
+                                                    .mr-auto.small= file.timestamp.toDateString()
+                                                    .ml-auto.small= file.assignment.due.toDateString()
+                                            else
+                                                .card-date.d-flex.card-date-done.bg-success
+                                                    .mr-auto.small= file.timestamp.toDateString()
+                                                    .ml-auto.small= file.assignment.due.toDateString()
+                                        else
+                                            .card-date.d-flex.card-date-done.bg-success
+                                                .mr-auto.small= file.timestamp.toDateString()
+                                        +card-icons()
+                                            a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file._id)
+                                                span.oi.oi-pencil

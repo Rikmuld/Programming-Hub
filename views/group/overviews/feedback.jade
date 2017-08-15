@@ -34,7 +34,7 @@ block groupContent
             - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
         - allFiles.sort((a, b) => { return a.timestamp - b.timestamp })
         if allFiles.length == 0
-            p.lead All hand-ins already have feedback
+            p.lead All submissions already have feedback
         else 
             +card-container
                 for file in allFiles

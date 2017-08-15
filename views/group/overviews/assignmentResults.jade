@@ -1,26 +1,27 @@
 ﻿include ../../includes/basic.jade
 
-if theAssignment.files.length == 0
-    p There are no handins for this assignment
-else 
++card-container
     for file in theAssignment.files
-        .card-holder.col-md-3.col-sm-4.col-xs-6
-            .file-card
-                a.card(href="/file/" + file._id)
-                    if theAssignment.typ == "open" || theAssignment.due > file.timestamp
-                        .assignmentStateBulb.back-done
+        +card()
+            +card-simple(theAssignment.name, "/file/" + file._id)
+                span #{file.students[0].name} #{file.students[0].surename} 
+                - var done = file.students[0]._id
+                for student in file.students
+                    if student._id != done
+                        span / #{student.name} #{student.surename} 
+                .card-date-sepperator
+                if theAssignment.typ != "open"
+                    if file.timestamp > theAssignment.due
+                        .card-date.d-flex.card-date-done.bg-warning
+                            .mr-auto.small= file.timestamp.toDateString()
+                            .ml-auto.small= theAssignment.due.toDateString()
                     else
-                        .assignmentStateBulb.back-late
-                    if file.feedback.length == 0
-                        .assignmentStateFeedback.back-normal
-                    else
-                        .assignmentStateFeedback.back-done
-                    .yAlign
-                        h3.special= theAssignment.name
-                        h4#subheadersmall
-                            span #{file.students[0].name} #{file.students[0].surename} 
-                            - var done = file.students[0]._id
-                            for student in file.students
-                                if student._id != done
-                                    span / #{student.name} #{student.surename} 
-                        +timeline(new Date(), new Date(), file.timestamp)(class="hidden")
+                        .card-date.d-flex.card-date-done.bg-success
+                            .mr-auto.small= file.timestamp.toDateString()
+                            .ml-auto.small= theAssignment.due.toDateString()
+                else
+                    .card-date.d-flex.card-date-done.bg-success
+                        .mr-auto.small= file.timestamp.toDateString()
+                +card-icons()
+                    a.btn.btn-primary.btn-card-icon(href="/file/" + file._id)
+                        span.oi.oi-pencil

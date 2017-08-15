@@ -2,5 +2,30 @@
 
 block content
     .container
-        h2 Whoops, something went wrong there!
-        p= error
+        .section-container
+            h2 Errors happen ¯\_(ツ)_/¯
+            p.lead= error
+            p.lead 
+                span You can escape using the navbar above, or by using the home button below.
+                br
+                span In the case you think this error should not have happened smash the bug instead!
+            .section-buttons
+                a.btn.btn-outline-primary.btn-section.cpointer(href="/")
+                    span.oi.oi-home
+                a.btn.btn-outline-primary.btn-section.cpointer.ml-2(href="mailto:rikmuld@gmail.com?subject=ATLAS Hub Error&body=Hi Rik,%0D%0A%0D%0AI found an error in the ATLAS Hub when I traveled to '#{path}', here is the error message:%0D%0A%0D%0A" + error)
+                    span.oi.oi-bug
+            p.lead.mt-5 Excessive and unnecessary bug smashing is not recommended.
+        p.bug1.text-center
+            span.oi.oi-bug
+        p.bug2.text-center
+            span.oi.oi-bug
+        p.bug3.text-center
+            span.oi.oi-bug
+        p.bug4.text-center
+            span.oi.oi-bug
+        p.bug5.text-center
+            span.oi.oi-bug
+        p.bug6.text-center
+            span.oi.oi-bug
+        p.bug7.text-center
+            span.oi.oi-bug

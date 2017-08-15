@@ -22,10 +22,7 @@ var Render;
     }
     Render.withUser = withUser;
     function error(req, res, err) {
-        res.render("error", {
-            user: req.user,
-            error: err
-        });
+        withUser(req, res, "error", { error: err, path: req.url });
     }
     Render.error = error;
     function render(app, loc, data, success, fail) {

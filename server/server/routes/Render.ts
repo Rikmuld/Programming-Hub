@@ -27,10 +27,7 @@ export namespace Render {
     }
 
     export function error(req: Routes.Req, res: Routes.Res, err: string) {
-        res.render("error", {
-            user: req.user,
-            error: err
-        })
+        withUser(req, res, "error", { error: err, path: req.url })
     }
 
     export function render(app: express.Express, loc: string, data: {}, success: Suc, fail: Err) {

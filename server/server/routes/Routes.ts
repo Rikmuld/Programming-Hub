@@ -84,6 +84,10 @@ export namespace Routes {
             failureRedirect: '/'
         }))
 
+        app.use(function(req, res, next) {
+            Render.error(req, res, "Lucky you, its a 404!")
+        });
+
         storage = fileService
     }
 

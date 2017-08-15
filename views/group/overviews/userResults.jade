@@ -1,23 +1,24 @@
 ﻿include ../../includes/basic.jade
 
-if files.length == 0
-    p The student did not hand in any assignments yet!
-else 
-    for finalFile in files
-        - var file = finalFile.file
-        .card-holder.col-md-3.col-sm-4.col-xs-6
-            .file-card
-                a.card(href="/file/" + file._id)
-                    if file.assignment
-                        if file.assignment.typ == "open" || file.assignment.due > file.timestamp
-                            .assignmentStateBulb.back-done
-                        else
-                            .assignmentStateBulb.back-late
-                        if file.feedback.length == 0
-                            .assignmentStateFeedback.back-normal
-                        else 
-                            .assignmentStateFeedback.back-done
-                        .yAlign
-                            h3.special= file.assignment.name
-                            h4#subheadersmall= file.name
-                            +timeline(new Date(), new Date(), file.timestamp)(class="hidden")
++card-container()
+    for finalFiles in files
+        - var file = finalFiles.file
+        +card()
+            +card-simple(file.assignment.name, "/file/" + file._id)
+                span= file.name
+            .card-date-sepperator
+            if file.assignment.typ != "open"
+                if file.timestamp > file.assignment.due
+                    .card-date.d-flex.card-date-done.bg-warning
+                        .mr-auto.small= file.timestamp.toDateString()
+                        .ml-auto.small= file.assignment.due.toDateString()
+                else
+                    .card-date.d-flex.card-date-done.bg-success
+                        .mr-auto.small= file.timestamp.toDateString()
+                        .ml-auto.small= file.assignment.due.toDateString()
+            else
+                .card-date.d-flex.card-date-done.bg-success
+                    .mr-auto.small= file.timestamp.toDateString()
+            +card-icons()
+                a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file._id)
+                    span.oi.oi-pencil

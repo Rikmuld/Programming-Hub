@@ -16,60 +16,64 @@ block append styles
 
 block content
     .container
-        +accordion("accGroups")
-            - var hasRemovedGroups = false
-            for group in fullUser.groups
-                if !group.group
-                    - hasRemovedGroups = true
-                else
-                    +acc-item("accGroups", group.group._id, group.group.name, false, group.group.start.toLocaleDateString() + " to " + group.group.end.toLocaleDateString())
-                        .row
+        - var hasRemovedGroups = false
+        for group in fullUser.groups
+            if !group.group && group.files.length > 0
+                - hasRemovedGroups = true
+            else if group.files.length > 0
+                +acc-item(group.group._id, group.group.name, false, group.group.start.toLocaleDateString() + " to " + group.group.end.toLocaleDateString(), true)
+                    +card-container()
+                        for file in group.files
+                            +card()
+                                +card-simple(file.file.assignment.name, "/file/" + file.file._id)
+                                    span= file.file.name
+                                .card-date-sepperator
+                                if file.file.assignment.typ != "open"
+                                    if file.file.timestamp > file.file.assignment.due
+                                        .card-date.d-flex.card-date-done.bg-warning
+                                            .mr-auto.small= file.file.timestamp.toDateString()
+                                            .ml-auto.small= file.file.assignment.due.toDateString()
+                                    else
+                                        .card-date.d-flex.card-date-done.bg-success
+                                            .mr-auto.small= file.file.timestamp.toDateString()
+                                            .ml-auto.small= file.file.assignment.due.toDateString()
+                                else
+                                    .card-date.d-flex.card-date-done.bg-success
+                                        .mr-auto.small= file.file.timestamp.toDateString()
+                                +card-icons()
+                                    a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file.file._id)
+                                        span.oi.oi-list
+
+        if hasRemovedGroups
+            - var randomDate = new Date()
+            +acc-item("removedGroups", "Removed Groups", false, "", true)
+                for group in fullUser.groups
+                    if !group.group && group.files.length > 0
+                        +card-container()
                             for file in group.files
-                                .card-holder.col-md-3.col-sm-4.col-xs-6
-                                    .file-card
-                                        a.card(href="/file/" + file.file._id)
-                                            if file.file.assignment
-                                                if file.file.assignment.typ == "open" || file.file.assignment.due > file.file.timestamp
-                                                    .assignmentStateBulb.back-done
-                                                else
-                                                    .assignmentStateBulb.back-late
-                                                if file.file.feedback.length == 0
-                                                    .assignmentStateFeedback.back-normal
-                                                else 
-                                                    .assignmentStateFeedback.back-done
-                                                .yAlign
-                                                    h3.special= file.file.assignment.name
-                                                    h4#subheadersmall= file.file.name
-                                                    +timeline(group.group.start, group.group.end, file.file.timestamp)(class="hidden")
-                                            else 
-                                                .yAlign
-                                                    h3.special.red Removed Assignment!
-                                                    h4#subheadersmall= file.file.name
-                                                    +timeline(group.group.start, group.group.end, file.file.timestamp)(class="hidden")
-            if hasRemovedGroups
-                - var randomDate = new Date()
-                +acc-item("accGroups", "removedGroups", "Removed Groups")
-                    for group in fullUser.groups
-                        if !group.group
-                            for file in group.files
-                                .card-holder.col-md-3.col-sm-4.col-xs-6
-                                    .file-card
-                                        a.card(href="/file/" + file.file._id)
-                                            if file.file.assignment
-                                                if file.file.assignment.typ == "open" || file.file.assignment.due > file.file.timestamp
-                                                    .assignmentStateBulb.back-done
-                                                else
-                                                    .assignmentStateBulb.back-late
-                                                if file.file.feedback.length == 0
-                                                    .assignmentStateFeedback.back-normal
-                                                else 
-                                                    .assignmentStateFeedback.back-done
-                                                .yAlign
-                                                    h3.special= file.file.assignment.name
-                                                    h4#subheadersmall= file.file.name
-                                                    +timeline(randomDate, randomDate, file.file.timestamp)(class="hidden")
-                                            else 
-                                                .yAlign
-                                                    h3.special.red Removed Assignment!
-                                                    h4#subheadersmall= file.file.name
-                                                    +timeline(randomDate, randomDate, file.file.timestamp)(class="hidden")
+                                +card()
+                                    if file.file.assignment
+                                        +card-simple(file.file.assignment.name, "/file/" + file.file._id)
+                                            span= file.file.name
+                                        .card-date-sepperator
+                                        if file.file.assignment.typ != "open"
+                                            if file.file.timestamp > file.file.assignment.due
+                                                .card-date.d-flex.card-date-done.bg-warning
+                                                    .mr-auto.small= file.file.timestamp.toDateString()
+                                                    .ml-auto.small= file.file.assignment.due.toDateString()
+                                            else
+                                                .card-date.d-flex.card-date-done.bg-success
+                                                    .mr-auto.small= file.file.timestamp.toDateString()
+                                                    .ml-auto.small= file.file.assignment.due.toDateString()
+                                        else
+                                            .card-date.d-flex.card-date-done.bg-success
+                                                .mr-auto.small= file.file.timestamp.toDateString()
+                                    else
+                                        +card-simple("Removed Assignment", "/file/" + file.file._id)(class="text-danger")
+                                            span= file.file.name
+                                        .card-date-sepperator
+                                        .card-date.d-flex.card-date-done.bg-success
+                                            .mr-auto.small= file.file.timestamp.toDateString()
+                                    +card-icons()
+                                        a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file.file._id)
+                                            span.oi.oi-list
