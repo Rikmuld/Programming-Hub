@@ -10,7 +10,13 @@ mixin card()
 mixin card-simple(title, href)
     .card-body.card-simple
         h4.card-title
-            a(href=href)= title
+            a(href=href)&attributes(attributes)= title
+        block
+
+mixin card-small(title, href)
+    .card-body.card-simple
+        h5.card-title
+            a(href=href)&attributes(attributes)= title
         block
 
 mixin card-timeline(start, end)

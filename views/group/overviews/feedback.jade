@@ -27,37 +27,38 @@ block headerTitle
     h2#subheader To-Feedback List
 
 block groupContent
-    h1 Hand-ins
-    - var allFiles = []
-    for assignment in group.assignments
-        - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
-    - allFiles.sort((a, b) => { return a.timestamp - b.timestamp })
-    if allFiles.length == 0
-        p All hand-ins already have feedback :)
-    else 
-        .row
-            for file in allFiles
-                - var assignment = group.assignments.find(a => a._id == file.assignment)
-                +flipper()(class="group")
-                    +front-card() 
-                        if assignment.typ == "open" || assignment.due > file.timestamp
-                            .assignmentStateBulb.back-done
-                        else
-                            .assignmentStateBulb.back-late
-                        if file.feedback.length == 0
-                            .assignmentStateFeedback.back-normal
-                        else 
-                            .assignmentStateFeedback.back-done
-                        .yAlign
-                            h3.special= assignment.name
-                            h4#subheadersmall
-                                span #{file.students[0].name} #{file.students[0].surename} 
-                                - var done = file.students[0]._id
-                                for student in file.students
-                                    if student._id != done
-                                        span / #{student.name} #{student.surename} 
-                            +timeline(group.start, group.end, file.timestamp)(class="hidden")
-                    +back-card()
-                        +card-icons() 
-                            .bottom-icons
-                                +card-icon-a("/file/" + file._id, 'Feedback', 'pencil')
+    .section-container
+        h2 Hand-ins
+        - var allFiles = []
+        for assignment in group.assignments
+            - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
+        - allFiles.sort((a, b) => { return a.timestamp - b.timestamp })
+        if allFiles.length == 0
+            p.lead All hand-ins already have feedback
+        else 
+            +card-container
+                for file in allFiles
+                    - var assignment = group.assignments.find(a => a._id == file.assignment)
+                    +card()
+                        +card-simple(assignment.name, "/file/" + file._id)
+                            span #{file.students[0].name} #{file.students[0].surename} 
+                            - var done = file.students[0]._id
+                            for student in file.students
+                                if student._id != done
+                                    span / #{student.name} #{student.surename} 
+                            .card-date-sepperator
+                            if assignment.typ != "open"
+                                if file.timestamp > assignment.due
+                                    .card-date.d-flex.card-date-done.bg-warning
+                                        .mr-auto.small= file.timestamp.toDateString()
+                                        .ml-auto.small= assignment.due.toDateString()
+                                else
+                                    .card-date.d-flex.card-date-done.bg-success
+                                        .mr-auto.small= file.timestamp.toDateString()
+                                        .ml-auto.small= assignment.due.toDateString()
+                            else
+                                .card-date.d-flex.card-date-done.bg-success
+                                    .mr-auto.small= file.timestamp.toDateString()
+                            +card-icons()
+                                a.btn.btn-primary.btn-card-icon(href="/file/" + file._id)
+                                    span.oi.oi-pencil

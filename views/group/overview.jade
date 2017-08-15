@@ -51,43 +51,32 @@ block groupContent
             else
                 - asses_final.push(ass)
 
-    .section-container
-        h2 Assignments
-        if asses.length > 0
-            +card-container()
-                for ass in asses
-                    - var file = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
-                    +card()
-                        +card-simple(ass.name, group._id + "/assignment/" + ass._id)
-                        .card-date.d-flex
-                            span.small= ass.due.toDateString()
-                        +card-icons()
-                            button.btn.btn-success.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
-                                span.oi.oi-data-transfer-upload
-                            if ass.link.length > 0
-                                a.btn.btn-info.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
-                                    span.oi.oi-info
-        else
-            p.lead There are no open assignments!
-
-        
     if asses_final.length > 0 || asses_o_final.length > 0
         .section-container
             h2 Non-Final Assignments
 
             mixin nonFinalCard(ass, file)
                 +card()
-                    +card-simple(ass.name, group._id + "/assignment/" + ass._id)
-                        span= file[0].file.name
-                    .card-date.d-flex.card-date-done
-                        .mr-auto.small= file[0].file.timestamp.toDateString()
-                        .ml-auto.small= ass.due.toDateString()
+                    +card-simple(ass.name, "/file/" + file._id)
+                        span= file.name
+                    .card-date-sepperator
+                    if ass.typ == 'open'
+                        .card-date.d-flex.card-date-done.bg-success
+                            .small= file.timestamp.toDateString()
+                    else if file.timestamp > ass.due
+                        .card-date.d-flex.card-date-done.bg-warning
+                            .mr-auto.small= file.timestamp.toDateString()
+                            .ml-auto.small= ass.due.toDateString()
+                    else
+                        .card-date.d-flex.card-date-done.bg-success
+                            .mr-auto.small= file.timestamp.toDateString()
+                            .ml-auto.small= ass.due.toDateString()
                     +card-icons()
-                        a.btn.btn-success.btn-card-icon.cpointer(href="/file/" + file[0].file._id)
+                        a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file._id)
                             span.oi.oi-list
-                        button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
+                        button.btn.btn-success.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#acceptAssignment" target="#acceptAssignment_title" text-data="#{file.name}" attr-data='{"file": "#{file._id}"}')
                             span.oi.oi-check
-                        button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{file[0].file.name}" attr-data='{"file": "#{file[0].file._id}"}')
+                        button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#declineAssignment" target="#declineAssignment_title" text-data="#{file.name}" attr-data='{"file": "#{file._id}"}')
                             span.oi.oi-x
                         if ass.link.length > 0
                             a.btn.btn-info.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
@@ -97,14 +86,36 @@ block groupContent
                 if asses_final.length > 0
                     for ass in asses_final
                         - var file = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
-                        +card()
-                            +nonFinalCard(ass, file)
+                        +nonFinalCard(ass, file[0].file)
                 
                 if asses_o_final.length > 0
                     - var ass = group.assignments[0]
                     for file in asses_o_final
-                        +card()
-                            +nonFinalCard(ass, file)
+                        +nonFinalCard(ass, file.file)
+
+    .section-container
+        h2 Assignments
+        if asses.length > 0
+            +card-container()
+                for ass in asses
+                    - var file = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
+                    +card()
+                        +card-simple(ass.name)(class="manipulate cpointer" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                        .card-date-sepperator
+                        if ass.due < new Date()
+                            .card-date.d-flex.bg-danger
+                                span.small= ass.due.toDateString()
+                        else 
+                            .card-date.d-flex.bg-primary
+                                span.small= ass.due.toDateString()
+                        +card-icons()
+                            button.btn.btn-success.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#uploadAssignment" target="#uploadAssignment_title" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
+                                span.oi.oi-data-transfer-upload
+                            if ass.link.length > 0
+                                a.btn.btn-secondary.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
+                                    span.oi.oi-info
+        else
+            p.lead There are no open assignments!
 
     if asses_done.length > 0
         .section-container
@@ -113,16 +124,22 @@ block groupContent
                 for ass in asses_done
                     - var file = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
                     +card()
-                        +card-simple(ass.name, group._id + "/assignment/" + ass._id)
+                        +card-simple(ass.name, "/file/" + file[0].file._id)
                             span= file[0].file.name
-                        .card-date.d-flex.card-date-done
-                            .mr-auto.small= file[0].file.timestamp.toDateString()
-                            .ml-auto.small= ass.due.toDateString()
+                        .card-date-sepperator
+                        if file[0].file.timestamp > ass.due
+                            .card-date.d-flex.card-date-done.bg-warning
+                                .mr-auto.small= file[0].file.timestamp.toDateString()
+                                .ml-auto.small= ass.due.toDateString()
+                        else
+                            .card-date.d-flex.card-date-done.bg-success
+                                .mr-auto.small= file[0].file.timestamp.toDateString()
+                                .ml-auto.small= ass.due.toDateString()
                         +card-icons()
-                            a.btn.btn-success.btn-card-icon.cpointer(href="/file/" + file[0].file._id)
+                            a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file[0].file._id)
                                 span.oi.oi-list
                             if ass.link.length > 0
-                                a.btn.btn-info.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
+                                a.btn.btn-secondary.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
                                     span.oi.oi-info
 
     if asses_o
@@ -136,12 +153,13 @@ block groupContent
                 +card-container()
                     for file in handins
                         +card()
-                            +card-simple(ass.name, group._id + "/assignment/" + ass._id)
+                            +card-simple(ass.name, "/file/" + file.file._id)
                                 span= file.file.name
-                            .card-date.d-flex.card-date-done
+                            .card-date-sepperator
+                            .card-date.d-flex.card-date-done.bg-success
                                 .mr-auto.small= file.file.timestamp.toDateString()
                             +card-icons()
-                                a.btn.btn-success.btn-card-icon.cpointer(href="/file/" + file.file._id)
+                                a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file.file._id)
                                     span.oi.oi-list
 
             .section-buttons
@@ -149,28 +167,25 @@ block groupContent
                     span.oi.oi-plus
 
     +modal('uploadAssignment', "Upload Assignment: ", 'primary', 'Upload Assignment', true)
-        +text('Hand-in Name', 'handInName')
-        hr
+        .form-group
+            +text('Hand-in Name', 'handInName')
         .form-group
             form.dropzone.form-control#uploadedFiles(action="file-upload" method="post" enctype="multipart/form-data")
                 input.hide(type="file" name="files")
-                .dz-message.yAlign
+                .dz-message
                     p Click or drag files to upload.
-        label(for="uploadedFilesSelect") Uploaded Files
-        .well#uploadedFilesSelect
-            ul.list-group.checked-list-box#uploadedFilesList
+        .form-group
+            .well#uploadedFilesSelect
+                ul.list-group.checked-list-box#uploadedFilesList
         hr
-        label(for="userSelect") Partners
-        .well#studentSelect
-            ul.list-group.checked-list-box#studentUserList
-                for student in group.students
-                    if student._id != user.id
-                        li.list-group-item(value=student._id) #{student.name} #{student.surename} (#{student._id})
-        .alert.alert-info
-            span
-                b Note
-                |! Your partners to not need to hand in this assignment anymore, they do need to accept this hand-in however (from the dashboard).
-        hr
+        if group.students.length > 1
+            .form-group
+                label(for="userSelect") Partners
+                .well#studentSelect
+                    ul.list-group.checked-list-box#studentUserList
+                        for student in group.students
+                            if student._id != user.id
+                                li.list-group-item(value=student._id) #{student.name} #{student.surename} (#{student._id})
         .form-group
             label.control-label(for="comments") Additional Comments (optional)
             textarea.form-control#comments(rows="5")

@@ -21,10 +21,10 @@ function initListGroupItem(item) {
         style = ($widget.data('style') == "button" ? "btn-" : "list-group-item-"),
         settings = {
             on: {
-                icon: 'glyphicon glyphicon-check'
+                icon: 'oi oi-check'
             },
             off: {
-                icon: 'glyphicon glyphicon-unchecked'
+                icon: 'oi oi-check'
             }
         };
 

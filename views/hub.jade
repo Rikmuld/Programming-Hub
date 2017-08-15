@@ -29,13 +29,16 @@ block content
                             +card-simple(group.name, "/group/"+group._id)
                             +card-timeline(group.start, group.end)
                             +card-icons()
-                                a.btn.btn-success.btn-card-icon.cpointer(href="/group/" + group._id)
-                                    span.oi.oi-home
                                 if user.admin
+                                    a.btn.btn-success.btn-card-icon.cpointer(href="/group/" + group._id)
+                                        span.oi.oi-home
                                     button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#updateCourse" target="#update_courseName" attr-data='{"value": "#{group.name}", "start": "#{group.start}", "end":"#{group.end}", "course": "#{group._id}"}')
                                         span.oi.oi-cog
                                     button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#removeCourse" target="#removeCourseName" text-data="#{group.name}" attr-data='{"course": "#{group._id}"}')
                                         span.oi.oi-trash
+                                else
+                                    a.btn.btn-primary.btn-card-icon.cpointer(href="/group/" + group._id)
+                                        span.oi.oi-home
 
             if user.admin
                 .section-buttons
@@ -45,11 +48,10 @@ block content
     if user.admin
         mixin courseModal(id)
             +text("Course Name", id + 'courseName')
-            hr
             .row
-                .col-sm-6
+                .col-sm-8.mt-4
                     +date("Start Date", id + 'courseStart')
-                .col-sm-6
+                .col-sm-8.mt-2
                     +date("End Date", id + 'courseEnd')
 
         +modal('addCourse', 'Create a New Course', 'primary', 'Create Course')

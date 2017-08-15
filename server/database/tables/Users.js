@@ -37,7 +37,7 @@ class User extends Table_1.Table {
         });
     }
     getGroups(s) {
-        return this.exec(this.getByID(s)).flatMap(u => Groups_1.Groups.instance.exec(Groups_1.Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: 1 }), false));
+        return this.exec(this.getByID(s)).flatMap(u => Groups_1.Groups.instance.exec(Groups_1.Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: -1 }), false));
     }
     addFile(students, group, file) {
         return this.update(students, user => {

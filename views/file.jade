@@ -5,7 +5,6 @@ include includes/basic.jade
 
 block append scripts
     script(src="/scripts/includes/modalHelper.js")
-    script(src="/scripts/includes/cardicons.js")
     script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/handin.js")
 
@@ -27,81 +26,80 @@ block nav_right
         else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
             +navbar-a("/group/" + file.assignment.group._id, file.assignment.group.name)
 
-
-if file.assignment
-    block headerTitle
-        h1
-            if file.assignment && file.assignment.group
-                a(href="/group/" + file.assignment.group._id)= file.assignment.group.name
-            else
-                | Unknown Course
-        h2#subheader Hand-in
-
 block content
     .container
         - var zipURL = file.urls.pop()
-        if file.assignment
-            h2= file.assignment.name
-        h3#thefile(fileid=file._id)= file.name
         if file.assignment && file.assignment.typ != "open" && file.timestamp > file.assignment.due
-            hr
             .alert.alert-warning
-                p
+                span
                     b Late Handin! 
                     span Assignment was handed in on #{file.timestamp.toDateString()}, but was due for #{file.assignment.due.toDateString()}
         if !file.assignment        
-            hr         
             .alert.alert-warning
-                p
+                span
                     b Alert! 
                     span The associated assignment was removed!
         else if !file.assignment.group
-            hr
             .alert.alert-warning
-                p
+                span
                     b Alert! 
                     span The associated course was removed!
-        hr
-        .row
-            .col-sm-6
-                +cardTable("Students")
-                    for usr in file.students
-                        +cardTableFlip(usr.name + " " + usr.surename)
-                            if usr._id == user.id
-                                p This is you :)
-                            else
-                                .bottom-icons
-                                    +flip-table-a("mailto:" + usr._id + "@student.utwente.nl", "envelope")(target="_blank")
-                                    if user.admin
-                                        +flip-table-a("/group/" + file.assignment.group._id + "/user/" + usr._id, "list-alt")(target="_blank")
-            .col-sm-6
-                +cardTable("Files")
-                    for f in file.urls
-                        +cardTableFlip(f.split("/")[6].split("?")[0])
-                            .bottom-icons
-                                +flip-table-a(f, "download")(target="_blank")
-        hr
-        .row
-            .col-sm-6
-                +cardTable("Notes")
-                if file.notes.length > 0
-                    p.whiteContainer!= file.notes.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
-                else
-                    p.whiteContainer The students did not provide any additional comments.
-            .col-sm-6
-                +cardTable("Feedback")
-                if file.feedback.length > 0
-                    p.whiteContainer!= file.feedback.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
-                else
-                    p.whiteContainer No feedback was given yet.
-        .row
-            hr
-            if file.urls.length > 0
-                +cardLink-a(zipURL, "Download all Files")(target="_blank")
+        
+        .section-container
+            if file.assignment
+                h1= file.assignment.name
+            
+            h2#thefile(fileid=file._id)= file.name
+            
+            if file.notes.length > 0
+                p.lead= file.notes.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
+
+        .section-container
+            h2 Students
+            
+            +card-container
+                for user in file.students
+                    +card()
+                        +card-simple(user.name + " " + user.surename)
+                        +card-icons()
+                            a.btn.btn-primary.btn-card-icon.cpointer(href="mailto:" + user._id + "@student.utwente.nl")
+                                span.oi.oi-envelope-open
+
+
             if user.admin
-                +cardLink("Update Feedback")(data-toggle="modal" data-target="#feedbackModal")
-                - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")
-                +cardLink-a("mailto:" + mailStudents, "Mail Students")
+                .section-buttons
+                    - var mailStudents = file.students.map(s => s._id + "@student.utwente.nl,")
+                    a.btn.btn-outline-primary.btn-section.cpointer(href="mailto:" + mailStudents)
+                        span.oi.oi-envelope-open
+
+        if file.urls.length > 0
+            .section-container 
+                h2 Files
+
+                +card-container
+                    for f in file.urls
+                        +card()
+                            +card-small(f.split("/")[6].split("?")[0], f)(target="_blank")
+                            +card-icons()
+                                a.btn.btn-primary.btn-card-icon.cpointer(href=f target="_blank")
+                                    span.oi.oi-data-transfer-download
+
+                .section-buttons
+                    a.btn.btn-outline-primary.btn-section.cpointer(href=zipURL)
+                        span.oi.oi-data-transfer-download
+
+        if file.feedback.length > 0 || user.admin
+            .section-container
+                h2 Feedback
+                if file.feedback.length > 0
+                    p.lead= file.feedback.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
+                else
+                    p.lead You did not provide any feedback yet!
+                
+                if user.admin
+                    .section-buttons
+                        button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#feedbackModal")
+                            span.oi.oi-pencil
 
     +modal("feedbackModal", "Feedback Hand-in", "primary", "Update Feedback", false)
         .form-group

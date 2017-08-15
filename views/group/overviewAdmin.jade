@@ -49,7 +49,7 @@ block groupContent
                             if ass.typ != "open"
                                 span.small= ass.due.toDateString()
                             else 
-                                span.small#openExists No Deadline
+                                span.small#openExists Open Assignment
                         +card-icons()
                             a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
                                     span.oi.oi-list
@@ -100,9 +100,9 @@ block groupContent
 
     mixin assignmentModal(id, changeType)
         .row
-            .col-xs-8
+            .col-7
                 +text("Name", id + 'assignmentName')
-            .col-xs-4
+            .col-5
                 - var extraClass = changeType? "hidden":""
                 .input-group(class=extraClass)
                     +select("Type", id + 'assignmentType')(class="selectTrigger" container="#assignment-data" + id)
@@ -112,7 +112,7 @@ block groupContent
         div(id="assignment-data" + id)
             .selectActor(data="defined")
                 .row.mtop10
-                    .col-xs-8
+                    .col-7
                         +date("Due Date", id + 'due')
                 hr
                 label(for=id + "infoLink") Additional Information Link (optional)
@@ -158,10 +158,10 @@ block groupContent
     
     +modal('addUsers', "Add Users", 'primary', 'Add Users')
         .row
-            .col-xs-8
+            .col-7
                 .well.multiSelect#userSelect
                     ul.list-group.checked-list-box#allUserList
-            .col-xs-4
+            .col-5
                 .input-group
                     +select("Role", 'userRole')
                         option(value="student") Student

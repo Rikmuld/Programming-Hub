@@ -35,7 +35,7 @@ class User extends Table<Tables.User> {
 
     getGroups(s: string): Future<Tables.Group[]> {
         return this.exec(this.getByID(s)).flatMap(u =>
-            Groups.instance.exec(Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: 1 }), false))
+            Groups.instance.exec(Groups.instance.getByIDs(Users.activeGroupIDs(u).toArray()).sort({ end: -1 }), false))
     }
 
     addFile(students: string[], group: string, file: string): Future<Tables.User[]> {

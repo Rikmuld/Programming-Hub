@@ -76,7 +76,7 @@ class Validator {
         const targets = this.targets.map(t => modal.fields.get(t));
         const error = this.f(modal, ...targets);
         if (error.length > 0 && this.error)
-            targets.forEach(t => t.jq.parent().addClass("has-error"));
+            targets.forEach(t => t.jq.addClass("is-invalid"));
         return error;
     }
     static validate(modal, ...vals) {

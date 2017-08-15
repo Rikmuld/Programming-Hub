@@ -19,13 +19,13 @@
                         hr
                     block
                 .modal-footer
-                    button(type="button" class="btn btn-default" data-dismiss="modal") Close
-                    button.modal-run(type="button" class="btn btn-" + runButton)= runName
+                    button.cpointer(type="button" class="btn btn-default" data-dismiss="modal") Close
+                    button.cpointer.modal-run(type="button" class="btn btn-" + runButton)= runName
 
 mixin date(name, id)
     +inputGroup(name, id)(class="date" data-provide="datepicker")
         .input-group-addon
-            span.glyphicon.glyphicon-calendar
+            span.oi.oi-calendar
 
 mixin text(name, id)
     +inputGroup(name, id)

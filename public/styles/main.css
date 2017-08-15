@@ -38,14 +38,22 @@
   height: 16px;
 }
 .card-timeline .progress {
+  background-color: #343a40;
+  color: #fff;
   border-radius: 0rem 0rem 0.25rem 0.25rem;
   position: absolute;
   width: calc(100% + 2px);
   left: -1px;
 }
 .card-timeline .progress span {
+  padding-left: 1.25rem;
   position: absolute;
-  width: 100%;
+}
+.card-timeline .progress .progress-bar {
+  height: 17px;
+  line-height: 15px;
+  padding-left: 1.25rem;
+  text-align: left;
 }
 .card-container {
   margin-top: 1.5rem;
@@ -62,9 +70,24 @@
   text-align: right;
 }
 .card-date {
-  border-top: 1px solid rgba(0,0,0,0.125);
   padding-left: 1.25rem;
   padding-right: 1.25rem;
+  border-radius: 0rem 0rem 0.25rem 0.25rem;
+  color: #fff;
+  position: absolute;
+  bottom: -1px;
+  left: -1px;
+  width: calc(100% + 2px);
+}
+.card-date-sepperator {
+  height: 1rem;
+}
+#addon_courseEnd,
+#addon_courseStart {
+  width: 95px;
+}
+.errors {
+  margin-bottom: 0;
 }
 .right-align {
   text-align: right;
@@ -76,6 +99,9 @@
   position: relative;
 }
 .hide {
+  display: none;
+}
+.hidden {
   display: none;
 }
 .left {
