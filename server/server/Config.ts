@@ -35,4 +35,15 @@ export namespace Config {
         name: "atlasprogramming",
         key: "2+lwvwe0bdHmKWVq1LeVYtKn7wixQ6fBHkU7E0S+c3xMq/obRpcZt3ndtKJLQtIAQcIMDJL6SdEgUMTh/7F2Jg=="
     }
+
+    export const mail = {
+        active: false,
+        host: 'smtp.uct.onl',
+        port: 465,
+        secure: Config.mail.port == 465,
+        auth: {
+            user: "list@uct.onl",
+            pass: Users.rikmuld.password
+        }
+    }
 }

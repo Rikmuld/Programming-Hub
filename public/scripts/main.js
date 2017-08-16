@@ -5,19 +5,6 @@ function init() {
         $('#profileImageID').text(getInitials());
         $('#profileImageID').css("background-color", intToRGB(hashCode(getName())));
     }
-    $(".socketSender").click(function () {
-        const sender = $(this);
-        const ID = sender.attr("socketID");
-        const data = sender.attr("socketData");
-        socket.emit(ID, data);
-    });
-    socket.on('socketSenderDone', (success, err) => {
-        if (success)
-            location.reload();
-        else {
-            //add way to catch generic error, open model with message orso
-        }
-    });
 }
 function href(to) {
     document.location.href = to;

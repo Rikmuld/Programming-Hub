@@ -24,4 +24,14 @@
 
     const modDelete = new ModalFormValidator("#removeCourse", "removeCourse", "courseRemoved")
     modDelete.registerField("course", "course id", "#removeCourseName", ModalValues.attr("course"))
+
+    $(".courseCard").hover(function() {
+        const card = $(this)
+        const info = card.find(".progress span")
+        const currInfo = info.text()
+        const newInfo = info.attr("dateInfo")
+        
+        info.text(newInfo)
+        info.attr("dateInfo", currInfo)
+    })
 })

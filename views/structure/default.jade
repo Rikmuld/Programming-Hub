@@ -6,9 +6,15 @@ block header
     +navbar("ATLAS Hub", "navHeader", "/")
         .navbar-nav.mr-auto
             if user
-                +navbar-a("/", "Home")
+                if homeActive
+                    +navbar-a-active("/", "Home")
+                else
+                    +navbar-a("/", "Home")
                 if !user.admin
-                    +navbar-a("/results", "Results")
+                    if resultActive
+                        +navbar-a-active("/results", "Results")
+                    else
+                        +navbar-a("/results", "Results")
                 +navbar-dropdown("Courses", "courses")
                     for course in courses
                         +dropdown-a("/group/" + course._id, course.name)

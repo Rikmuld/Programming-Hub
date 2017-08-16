@@ -20,6 +20,15 @@ mixin navbar-dropdown(name, id)
         a.nav-link.dropdown-toggle(href="javascript:void()" id=id data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")= name
         .dropdown-menu(aria-labelledby=id)
             block
+
+mixin navbar-dropdown-active(name, id)
+    li.nav-item.dropdown.active
+        a.nav-link.dropdown-toggle(href="javascript:void()" id=id data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")= name
+        .dropdown-menu(aria-labelledby=id)
+            block
     
 mixin dropdown-a(href, name)
     a.dropdown-item(href=href)= name
+
+mixin dropdown-a-active(href, name)
+    a.dropdown-item.active(href=href)= name

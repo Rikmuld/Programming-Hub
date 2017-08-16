@@ -6,6 +6,7 @@ import {Setup} from "./server/Setup"
 import {Routes} from "./server/routes/Routes"
 import {Sockets} from "./server/routes/Sockets"
 import {Config} from "./server/Config"
+import {Mail} from "./server/Mail"
 
 const app = express()
 const server = http.createServer(app)
@@ -24,6 +25,8 @@ Setup.setupExpress(app, rootdir)
 Setup.setupSession(app, io)
 Setup.addAuthMiddleware(app)
 Setup.addAsMiddleware(app, "db", db)
+
+if(Config.mail.active) Mail.initialize()
 
 Routes.addRoutes(app, rootdir, storage)
 Sockets.bindHandlers(app, io, storage, rootdir)

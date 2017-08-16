@@ -150,7 +150,7 @@ class ModalFormValidator {
             this.hideError()
 
             loop(this.fields.objs, (key, value: Field) => {
-                value.jq.parent().removeClass("has-error")
+                value.jq.removeClass("is-invalid")
             })
         }
 
@@ -176,7 +176,7 @@ class ModalFormValidator {
         const errors = []
 
         loop(this.fields.objs, (key, value: Field) => {
-            value.jq.parent().removeClass("has-error")
+            value.jq.removeClass("is-invalid")
         })
 
         for (let val of this.validators) {

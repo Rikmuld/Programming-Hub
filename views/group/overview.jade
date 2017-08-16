@@ -23,6 +23,7 @@ block append styles
     link(href="/styles/dropzoneCustom.css" rel="stylesheet")
 
 block nav_right
+    +navbar-a-active("", group.name)
     +navbar-a(group.id + "/overview", "Result Overview")
 
 block groupContent

@@ -15,5 +15,9 @@ mixin acc-item(id, heading, isopen, info, nomargin)
             .collapse(id=id + "_collapse" aria-expanded=isopen role="tabpanel" aria-labelledby="headingOne")
                 block
         .section-buttons
-            button.btn.btn-outline-primary.btn-section.cpointer(role="button" data-toggle="collapse" href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)
-                span.oi.oi-collapse-down
+            if isopen
+                button.btn.btn-outline-primary.btn-section.cpointer.collapse-button(role="button" data-toggle="collapse" href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)
+                    span.oi.oi-collapse-down
+            else 
+                button.btn.btn-outline-primary.btn-section.cpointer.collapse-button.collapsed(role="button" data-toggle="collapse" href="#" + id + "_collapse" aria-expanded=isopen aria-controls=id + "_collapse")&attributes(attributes)
+                    span.oi.oi-collapse-down

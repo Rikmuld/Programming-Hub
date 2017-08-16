@@ -3,10 +3,8 @@ extends structure/default.jade
 include includes/basic.jade
 include includes/accordion.jade
 
-block headerTitle
-    h1
-        a(href="/") ATLAS Hub 
-    h2#subheader Result Overview
+block prepend header
+    - var resultActive = true
 
 block append scripts
     script(src="/scripts/includes/timeline.js")

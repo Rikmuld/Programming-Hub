@@ -252,6 +252,7 @@ export namespace Sockets {
         }
     }
 
+    //send mail to students that the instructor added or updated the feedback for their submission
     export function updateFeedback(app: express.Express, socket: SocketIO.Socket): FeedbackCall {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_FEEDBACK, success, error && (error as any).message ? (error as any).message : error)
 
@@ -308,6 +309,8 @@ export namespace Sockets {
     }
 
     //flatten....
+    //send mail to partners that someone submitted something for them and then can either accept and decline from course home
+    //send mail to instructor that there is a new submission that needs feedback
     export function uploadFile(app: express.Express, socket: SocketIO.Socket, storage: azure.FileService): UploadCall {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_UPLOAD_FILES, success, error)
 

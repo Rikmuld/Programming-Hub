@@ -22,8 +22,18 @@
 .cpointer {
   cursor: pointer;
 }
+.card-simple {
+  padding-right: 4.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 .card-simple .card-title {
   margin-bottom: 0rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  line-height: 1.4;
 }
 .card-simple .card-title a {
   color: inherit;
@@ -52,8 +62,6 @@
 .card-timeline .progress .progress-bar {
   height: 17px;
   line-height: 15px;
-  padding-left: 1.25rem;
-  text-align: left;
 }
 .card-container {
   margin-top: 1.5rem;
@@ -109,6 +117,13 @@
 }
 .bug7 {
   font-size: 0.25rem;
+}
+.collapse-button {
+  transition: transform 0.4s;
+  transform: rotate(180deg);
+}
+.collapse-button.collapsed {
+  transform: rotate(0deg);
 }
 .right-align {
   text-align: right;
