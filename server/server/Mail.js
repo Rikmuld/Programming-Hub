@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Config_1 = require("./Config");
-const future_1 = require("../functional/future");
+const Future_1 = require("../functional/Future");
 const nodemailer = require('nodemailer');
 var Mail;
 (function (Mail) {
@@ -25,7 +25,7 @@ var Mail;
     Mail.createBasicMailList = createBasicMailList;
     function sendMail(mail) {
         if (Config_1.Config.mail.active) {
-            return future_1.Future.lift(new Promise((res, rej) => {
+            return Future_1.Future.lift(new Promise((res, rej) => {
                 transporter.sendMail(mail, (err, info) => {
                     if (err)
                         rej(err);
@@ -35,7 +35,7 @@ var Mail;
             }));
         }
         else
-            return future_1.Future.reject("Sending email is not enabled!");
+            return Future_1.Future.reject("Sending email is not enabled!");
     }
     Mail.sendMail = sendMail;
 })(Mail = exports.Mail || (exports.Mail = {}));

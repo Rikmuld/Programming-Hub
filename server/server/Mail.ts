@@ -1,5 +1,5 @@
 import {Config} from './Config'
-import {Future} from '../functional/future'
+import {Future} from '../functional/Future'
 
 const nodemailer = require('nodemailer')
 
