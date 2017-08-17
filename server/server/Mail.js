@@ -6,13 +6,19 @@ const nodemailer = require('nodemailer');
 var Mail;
 (function (Mail) {
     let transporter;
+    1;
     function initialize() {
         transporter = nodemailer.createTransport({
             host: Config_1.Config.mail.host,
             port: Config_1.Config.mail.port,
             secure: Config_1.Config.mail.secure,
-            auth: Config_1.Config.auth
+            auth: Config_1.Config.mail.auth
         });
+        if (Config_1.Config.mail.test) {
+            const mail = createBasicMailList("Rik Mulder", "admin", ["rikmuld@gmail.com"], "Mailing Test");
+            mail.text = "Sending mails works just fine :)";
+            sendMail(mail).then(info => console.log(info), err => console.log(err));
+        }
     }
     Mail.initialize = initialize;
     function createBasicMailList(fromName, fromId, recipients, subject) {

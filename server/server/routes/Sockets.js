@@ -9,6 +9,7 @@ const Future_1 = require("../../functional/Future");
 const List_1 = require("../../functional/List");
 const IOMap_1 = require("../../functional/IOMap");
 const Tuple_1 = require("../../functional/Tuple");
+const Mail_1 = require("../../server/Mail");
 const Files_1 = require("../../database/tables/Files");
 const azure = require("azure-storage");
 const fs = require("fs");
@@ -330,13 +331,18 @@ var Sockets;
     function uploadFile(app, socket, storage) {
         const emitResult = (success, error) => socket.emit(RESULT_UPLOAD_FILES, success, error);
         return (assignment, handInName, comments, students, files) => {
-            console.log(assignment, handInName, comments, students, files);
             if (socket.request.session.passport) {
                 let groupId = "";
+                let groupName = "";
+                let instructors = [];
+                let assignmentName = "";
                 const user = socket.request.session.passport.user;
                 students.push(user.id);
                 const properHandin = Assignments_1.Assignments.instance.exec(Assignments_1.Assignments.instance.populateFiles(Assignments_1.Assignments.instance.getByID(assignment))).flatMap(ass => Groups_1.Groups.instance.exec(Groups_1.Groups.instance.getByID(ass.group)).map(g => new Tuple_1.Tuple(ass, g))).flatMap(data => {
                     groupId = data._2._id;
+                    groupName = data._2.name;
+                    instructors = data._2.admins;
+                    assignmentName = data._1.name;
                     for (let s in students)
                         if (data._2.students.indexOf(s) >= 0)
                             return Future_1.Future.reject("Student: '" + s + "' is not part of the course!");
@@ -345,8 +351,9 @@ var Sockets;
                     else {
                         for (let file of data._1.files) {
                             for (let s of students)
-                                if (file.students.find(st => st._id == s))
+                                if (file.students.find(st => st._id == s)) {
                                     return Future_1.Future.reject("Student: '" + s + "' already handed in this file!");
+                                }
                         }
                         return Future_1.Future.unit(true);
                     }
@@ -384,6 +391,13 @@ var Sockets;
                             outZip.on('close', function () {
                                 Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
                                     const id = file._id;
+                                    const mailAdmin = Mail_1.Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", instructors.map(u => u + "@gmail.com"), "New submission on '" + assignmentName + "'");
+                                    if (students.length > 1)
+                                        mailAdmin.html = `<p>Students: ${students.reduce((acc, next) => acc + ((acc.length > 0) ? ", " : "") + next, "")} send in a submission for assignment ${assignmentName}.`;
+                                    else
+                                        mailAdmin.html = `<p>Student ${students[0]} has send in a submission for assignment ${assignmentName}.`;
+                                    mailAdmin.html += `<br>You can view this submission online at: <a href="https://uct.onl/file/${id}">${handInName}</a></p><p>This is an automated message to which cannot be replied.</p>`;
+                                    Mail_1.Mail.sendMail(mailAdmin);
                                     storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
                                         storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
                                             const fileToLink = (fileName) => new Future_1.Future((res, rej) => {

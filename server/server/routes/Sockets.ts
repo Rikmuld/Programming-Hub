@@ -9,6 +9,7 @@ import { Future } from '../../functional/Future'
 import { List } from '../../functional/List'
 import { IOMap } from '../../functional/IOMap'
 import { Tuple } from '../../functional/Tuple'
+import { Mail } from '../../server/Mail'
 
 import { Files } from '../../database/tables/Files'
 
@@ -315,19 +316,27 @@ export namespace Sockets {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_UPLOAD_FILES, success, error)
 
         return (assignment: string, handInName:string, comments: string, students: string[], files: string[]) => {
-            console.log(assignment, handInName, comments, students, files)
             if (socket.request.session.passport) {
                 let groupId = ""
+                let groupName = ""
+                let instructors = []
+                let assignmentName = ""
+
                 const user = socket.request.session.passport.user
                 students.push(user.id)
                 const properHandin = Assignments.instance.exec(Assignments.instance.populateFiles(Assignments.instance.getByID(assignment))).flatMap(ass => Groups.instance.exec(Groups.instance.getByID(ass.group as string)).map(g => new Tuple(ass, g))).flatMap(data => {
                     groupId = data._2._id
+                    groupName = data._2.name
+                    instructors = data._2.admins
+                    assignmentName = data._1.name
 
                     for (let s in students) if ((data._2.students as string[]).indexOf(s) >= 0) return Future.reject("Student: '" + s + "' is not part of the course!")
                     if (data._1.typ == "open") return Future.unit(true)
                     else {
                         for (let file of data._1.files) {
-                            for (let s of students) if (((file as MkTables.FileTemplate).students as MkTables.UserTemplate[]).find(st => st._id == s)) return Future.reject("Student: '" + s + "' already handed in this file!")
+                            for (let s of students) if (((file as MkTables.FileTemplate).students as MkTables.UserTemplate[]).find(st => st._id == s)) {
+                                return Future.reject("Student: '" + s + "' already handed in this file!")
+                            }
                         }
                         return Future.unit(true)
                     }
@@ -370,6 +379,15 @@ export namespace Sockets {
                             outZip.on('close', function() {
                                 Files.instance.create(MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
                                     const id = file._id
+
+                                    const mailAdmin = Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", instructors.map(u => u + "@gmail.com"), "New submission on '" + assignmentName + "'")
+                                    
+                                    if (students.length > 1) mailAdmin.html = `<p>Students: ${students.reduce((acc, next) => acc + ((acc.length > 0)? ", ":"") + next, "")} send in a submission for assignment ${assignmentName}.`
+                                    else mailAdmin.html = `<p>Student ${students[0]} has send in a submission for assignment ${assignmentName}.`
+
+                                    mailAdmin.html += `<br>You can view this submission online at: <a href="https://uct.onl/file/${id}">${handInName}</a></p><p>This is an automated message to which cannot be replied.</p>`
+
+                                    Mail.sendMail(mailAdmin)
 
                                     storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
                                         storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {

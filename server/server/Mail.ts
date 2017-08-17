@@ -15,14 +15,21 @@ export namespace Mail {
         text?: string,
         html?: string
     }
-
+1
     export function initialize() {
         transporter = nodemailer.createTransport({
             host: Config.mail.host,
             port: Config.mail.port,
             secure: Config.mail.secure,
-            auth: Config.auth
+            auth: Config.mail.auth
         })
+
+        if (Config.mail.test) {
+            const mail = createBasicMailList("Rik Mulder", "admin", ["rikmuld@gmail.com"], "Mailing Test")
+            mail.text = "Sending mails works just fine :)"
+
+            sendMail(mail).then(info => console.log(info), err => console.log(err))
+        }
     }
 
     export function createBasicMailList(fromName: string, fromId: string, recipients: string[], subject: string): MailOptions {
