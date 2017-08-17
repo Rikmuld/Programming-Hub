@@ -1,0 +1,28 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = require("express");
+const http = require("http");
+const socket = require("socket.io");
+const Setup_1 = require("./server/Setup");
+const Routes_1 = require("./server/routes/Routes");
+const Sockets_1 = require("./server/routes/Sockets");
+const Config_1 = require("./server/Config");
+const Mail_1 = require("./server/Mail");
+const app = express();
+const server = http.createServer(app);
+const io = socket(server);
+const GOOGLE_CLIENT_ID = Config_1.Config.auth.id;
+const GOOGLE_CLIENT_SECRET = Config_1.Config.auth.key;
+const db = Setup_1.Setup.setupDatabase(Config_1.Config.db.address, Config_1.Config.db.port, Config_1.Config.db.db, Config_1.Config.db.user.name, Config_1.Config.db.user.password);
+const storage = Setup_1.Setup.connectFileService(Config_1.Config.storage.name, Config_1.Config.storage.key);
+const rootdir = __dirname.substr(0, __dirname.length - 7);
+Setup_1.Setup.setupAuthGoogle(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+Setup_1.Setup.setupExpress(app, rootdir);
+Setup_1.Setup.setupSession(app, io);
+Setup_1.Setup.addAuthMiddleware(app);
+Setup_1.Setup.addAsMiddleware(app, "db", db);
+if (Config_1.Config.mail.active)
+    Mail_1.Mail.initialize();
+Routes_1.Routes.addRoutes(app, rootdir, storage);
+Sockets_1.Sockets.bindHandlers(app, io, storage, rootdir);
+Setup_1.Setup.startServer(server);

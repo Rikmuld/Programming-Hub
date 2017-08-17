@@ -1,14 +1,4 @@
 node_modules/
 
 server/server/config.*
-
-server/*.js
-server/database/*.js
-server/routes/*.js
-server/sockets/*.js
-server/structures/*.js
-public/scripts/*.js
-public/scripts/database/*.js
-public/scripts/sockets/*.js
-public/styles/*.css
 temp/*
