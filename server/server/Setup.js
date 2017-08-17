@@ -44,9 +44,9 @@ var Setup;
         if (useRedis) {
             sessionData['store'] = new redisStore({
                 host: 'localhost',
-                port: 6379,
+                port: Config_1.Config.redis.port,
                 client: redisClient,
-                ttl: 86400
+                ttl: Config_1.Config.redis.ttl
             });
         }
         const sessionMiddle = session(sessionData);

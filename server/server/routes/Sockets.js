@@ -260,6 +260,7 @@ var Sockets;
         };
     }
     Sockets.assignmentResults = assignmentResults;
+    //send mail to students that the instructor added or updated the feedback for their submission
     function updateFeedback(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_FEEDBACK, success, error && error.message ? error.message : error);
         return (file, feedback) => {
@@ -324,6 +325,8 @@ var Sockets;
     }
     Sockets.manageFinal = manageFinal;
     //flatten....
+    //send mail to partners that someone submitted something for them and then can either accept and decline from course home
+    //send mail to instructor that there is a new submission that needs feedback
     function uploadFile(app, socket, storage) {
         const emitResult = (success, error) => socket.emit(RESULT_UPLOAD_FILES, success, error);
         return (assignment, handInName, comments, students, files) => {
