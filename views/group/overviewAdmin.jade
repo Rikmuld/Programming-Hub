@@ -3,20 +3,6 @@
 include ../includes/modalHelper.jade
 include ../includes/basic.jade
 
-block append scripts
-    script(src="/scripts/includes/modalHelper.js")
-    script
-        |$('.datepicker').datepicker();
-    script(src="/scripts/includes/timeline.js")
-    script(src="/scripts/includes/cardicons.js")
-    script(src="/scripts/includes/selectTrigger.js")
-    script(src="/scripts/overviewAdmin.js")
-    script(src="/scripts/includes/js/checkedListGroup.js")
-    script
-        |initListGroup($("#studentUserList"))
-    script(src="/scripts/includes/js/dropzone.min.js")
-    script(src="/scripts/includes/dropzoneCustom.js")
-
 block nav_right
     +navbar-a-active("", group.name)
 
@@ -40,15 +26,16 @@ block groupContent
     .section-container
         h2 Assignments
         if group.assignments.length > 0
+            p.lead#noAssignmentMessage(style="display:none") This course does not have any assignments!
             +card-container()
                 for ass in group.assignments
-                    +card()
+                    +card()(id=ass._id)
                         +card-simple(ass.name, group._id + "/assignment/" + ass._id)
                         .card-date.text-center
                             if ass.typ != "open"
                                 span.small= ass.due.toDateString()
                             else 
-                                span.small#openExists Open Assignment
+                                span.small#openExists Free Assignment
                         +card-icons()
                             a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
                                     span.oi.oi-list
@@ -60,7 +47,7 @@ block groupContent
                             button.btn.btn-danger.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#removeAssignment" target="#removeAssignmentName" text-data="#{ass.name}" attr-data='{"assignment": "#{ass._id}"}')
                                 span.oi.oi-trash
         else
-            p.lead This course does not have any assignments!
+            p.lead#noAssignmentMessage This course does not have any assignments!
 
         .section-buttons
             button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#addAssignment")
@@ -69,10 +56,11 @@ block groupContent
     .section-container
         h2 Students
         if group.students.length > 0
+            p.lead#noStudentMessage(style="display:none") This course does not have any students!
             +card-container
                 for usr in group.students
                     -users.push('"' + usr._id + '"')
-                    +card()
+                    +card()(id=usr._id.replace(/\./g, "") name=usr.name surename=usr.surename)
                         +card-simple(usr.name + " " + usr.surename, group._id + "/user/" + usr._id)
                         if usr._id != user.id
                             +card-icons()
@@ -83,7 +71,7 @@ block groupContent
                                 button.btn.btn-danger.btn-card-icon.cpointer(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
                                     span.oi.oi-trash
         else    
-            p.lead This course does not have any students!
+            p.lead#noStudentMessage This course does not have any students!
 
         for usr in group.admins
             -users.push('"' + usr._id + '"')
@@ -93,7 +81,7 @@ block groupContent
                 span.oi.oi-plus
             if group.students.length > 0
                 - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
-                a.btn.btn-outline-primary.btn-section.ml-2(href="mailto:" + mailStudents)
+                a#mailAllButton.btn.btn-outline-primary.btn-section.ml-2(href="mailto:" + mailStudents)
                     span.oi.oi-envelope-open
 
 
@@ -107,7 +95,7 @@ block groupContent
                     +select("Type", id + 'assignmentType')(class="selectTrigger" container="#assignment-data" + id)
                         option(value="defined") Defined
                         option(value="open") Open
-                        option(value="autograder") Autograder
+                        //option(value="autograder") Autograder
         div(id="assignment-data" + id)
             .selectActor(data="defined")
                 .row.mtop10
@@ -158,3 +146,17 @@ block groupContent
     +modal('addUsers', "Add Users", 'primary', 'Add Users')
         .well.multiSelect#userSelect
             ul.list-group.checked-list-box#allUserList
+
+block append scripts
+    script(src="/scripts/includes/modalHelper.js")
+    script
+        |$('.datepicker').datepicker();
+    script(src="/scripts/includes/timeline.js")
+    script(src="/scripts/includes/cardicons.js")
+    script(src="/scripts/includes/selectTrigger.js")
+    script(src="/scripts/overviewAdmin.js")
+    script(src="/scripts/includes/js/checkedListGroup.js")
+    script
+        |initListGroup($("#studentUserList"))
+    script(src="/scripts/includes/js/dropzone.min.js")
+    script(src="/scripts/includes/dropzoneCustom.js")

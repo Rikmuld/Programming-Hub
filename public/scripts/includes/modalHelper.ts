@@ -1,4 +1,8 @@
-﻿$(document).ready(() => {
+﻿interface Modal extends JQuery {
+    modal: (action: string) => void
+}
+
+$(document).ready(() => {
     $(".manipulate").click(handleData)
 })
 
@@ -118,12 +122,14 @@ class ModalFormValidator {
     fields: Dict<Field> = new Dict<Field>()
     private openListners: ((m: ModalFormValidator) => void)[] = []
 
-    modal: any
+    modal: Modal
     private errorMessage: any
     private errorContainer: any
 
+    private successHandler: () => void
+
     constructor(id: string, send: string, receive: string, multiUse: boolean = false) {
-        this.modal = $(id)
+        this.modal = $(id) as Modal
         this.sendId = send
 
         this.errorMessage = this.modal.find(".errors")
@@ -135,8 +141,10 @@ class ModalFormValidator {
     }
 
     private response(success: boolean, error?: any) {
-        if (success) location.reload()
-        else {
+        if (success) {
+            if(this.successHandler) this.successHandler()
+            else location.reload()
+        } else {
             this.showError()
             this.clearError()
             this.addError(fixError(error))
@@ -144,7 +152,6 @@ class ModalFormValidator {
     }
 
     private modalOpened(multiUse: boolean) {
-        console.log("openend")
         if (multiUse) {
             this.clearError()
             this.hideError()
@@ -219,6 +226,18 @@ class ModalFormValidator {
 
     setProp(field: string, attribute: string, value: boolean) {
         this.fields.get(field).jq.prop(attribute, value)
+    }
+
+    onSuccess(handler: () => void, reload: boolean = false) {
+        this.successHandler = () => {
+            this.close()
+            handler()
+            if(reload) location.reload()
+        }
+    }
+
+    close() {
+        this.modal.modal("hide")
     }
 
     addError(error: string) {

@@ -1,5 +1,17 @@
 ﻿declare function getSelected(container): string[]
 
+let otherUsers:{
+    name: string,
+    _id: string,
+    surename: string
+}[] = []
+
+let nonUsers:{
+    name: string,
+    _id: string,
+    surename: string
+}[]
+
 $(document).ready(() => {
     const assignmentCreate = new ModalFormValidator("#addAssignment", "createAssignment", "assignmentCreated")
     assignmentCreate.addValues(getGroupId())
@@ -63,9 +75,47 @@ $(document).ready(() => {
     const removeAssignment = new ModalFormValidator("#removeAssignment", "removeAssignment", "assignmentRemoved", true)
     removeAssignment.registerField("assignment", "assignment id", "#removeAssignmentName", ModalValues.attr("assignment"))
 
+    removeAssignment.onSuccess(() => {
+        const assignment = removeAssignment.getValue("assignment")
+       
+        const card =  $("#" + assignment).parent()
+        const cardContainer = card.parent()
+        
+        card.fadeOut(400, () => {
+            card.remove()
+            if(cardContainer.children().length == 0) {
+                const section = cardContainer.parent()
+                cardContainer.remove()
+                $("#noAssignmentMessage").fadeIn()
+            }
+        })
+    })
+
     const removeUser = new ModalFormValidator("#removeUser", "removeUser", "userRemoved", true)
     removeUser.addValues(getGroupId(), false)
     removeUser.registerField("user", "user id", "#removeUserName", ModalValues.attr("user"))
+
+    removeUser.onSuccess(() => {
+        const user = removeUser.getValue("user")
+        otherUsers.push({
+            _id: user,
+            name: $("#" + user.replace(/\./g, "")).attr("name"),
+            surename: $("#" + user.replace(/\./g, "")).attr("surename")
+        })
+        usersGot(null)
+        const card =  $("#" + user.replace(/\./g, "")).parent()
+        const cardContainer = card.parent()
+        
+        card.fadeOut(400, () => {
+            card.remove()
+            if(cardContainer.children().length == 0) {
+                const section = cardContainer.parent()
+                cardContainer.remove()
+                $("#mailAllButton").hide()
+                $("#noStudentMessage").fadeIn()
+            }
+        })
+    })
 
     const addUsers = new ModalFormValidator("#addUsers", "addUsers", "usersAdded")
     addUsers.addValues(getGroupId(), "student")
@@ -88,14 +138,21 @@ function getEndDate(): Date {
 }
 
 function getUsers(users: string) {
-    if ($("#allUserList").html().length == 0) socket.emit("getUsers", JSON.parse(users))
+    if (!nonUsers) socket.emit("getUsers", JSON.parse(users))
 }
 
 declare function initListGroup(container)
 
 function usersGot(users: any[]) {
+    if(users) nonUsers = users
+
+    const allUsers = []
+
+    allUsers.push.apply(allUsers, nonUsers)
+    allUsers.push.apply(allUsers, otherUsers)
+
     $("#allUserList").html("")
-    for (let user of users) {
+    for (let user of allUsers) {
         const li = document.createElement("li")
         li.classList.add("list-group-item")
         li.innerText = user.name + " " + user.surename + " (" + user._id + ")"
@@ -103,7 +160,7 @@ function usersGot(users: any[]) {
         $("#allUserList").append(li)
     }
 
-    if (users.length == 0) {
+    if (allUsers.length == 0) {
         const p = document.createElement("span")
         p.innerText = "There are no available users to add!"
         $("#allUserList").append(p)

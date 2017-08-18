@@ -22,13 +22,15 @@ block content
                 h2 Enrolled Courses
             if courses.length == 0
                 if user.admin
-                    p.lead You are not assigned to any course yet! You can create one with the button below.
+                    p.lead#noCourseMessage You are not assigned to any course yet! You can create one with the button below.
                 else 
                     p.lead You are not yet enrolled in any courses!
             else
+                if user.admin
+                    p.lead#noCourseMessage(style="display:none") You are not assigned to any course yet! You can create one with the button below.
                 +card-container()
                     for group in courses
-                        +card()(class="courseCard")
+                        +card()(class="courseCard" id=group._id)
                             +card-simple(group.name, "/group/"+group._id)
                             +card-timeline(group.start, group.end)
                             +card-icons()

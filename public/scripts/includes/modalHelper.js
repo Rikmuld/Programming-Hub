@@ -104,8 +104,12 @@ class ModalFormValidator {
         socket.on(receive, (success, error) => this.response(success, error));
     }
     response(success, error) {
-        if (success)
-            location.reload();
+        if (success) {
+            if (this.successHandler)
+                this.successHandler();
+            else
+                location.reload();
+        }
         else {
             this.showError();
             this.clearError();
@@ -113,7 +117,6 @@ class ModalFormValidator {
         }
     }
     modalOpened(multiUse) {
-        console.log("openend");
         if (multiUse) {
             this.clearError();
             this.hideError();
@@ -175,6 +178,17 @@ class ModalFormValidator {
     }
     setProp(field, attribute, value) {
         this.fields.get(field).jq.prop(attribute, value);
+    }
+    onSuccess(handler, reload = false) {
+        this.successHandler = () => {
+            this.close();
+            handler();
+            if (reload)
+                location.reload();
+        };
+    }
+    close() {
+        this.modal.modal("hide");
     }
     addError(error) {
         const li = document.createElement("li");
