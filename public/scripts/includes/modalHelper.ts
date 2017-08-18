@@ -64,7 +64,7 @@ class Field {
     id: string
     value: () => any
     value_raw: (jq:any) => any
-    jq: any
+    jq: JQuery
 
     constructor(id: string, name: string, jq: any, value: (jq: any) => any) {
         this.id = id
@@ -207,6 +207,20 @@ class ModalFormValidator {
         this.errorContainer.addClass("hidden")
     }
 
+    onChange(field: string, callback: (value: string) => void) {
+        this.fields.get(field).jq.on("input", (e) => {
+            callback(this.fields.get(field).value())
+        })
+    }
+
+    setAttribute(field: string, attribute: string, value: string) {
+        this.fields.get(field).jq.attr(attribute, value)
+    }
+
+    setProp(field: string, attribute: string, value: boolean) {
+        this.fields.get(field).jq.prop(attribute, value)
+    }
+
     addError(error: string) {
         const li = document.createElement("li")
         li.innerText = error
@@ -229,11 +243,11 @@ class ModalFormValidator {
         return this.actField(field, f => f.name)
     }
 
-    getJq(field: string): any {
+    getJq(field: string): JQuery {
         return this.actField(field, f => f.jq)
     }
 
-    private actField(field: string, f: (field: Field) => string): string {
+    private actField<A>(field: string, f: (field: Field) => A): A {
         const val = this.fields.get(field)
 
         if (val) return f(val)
@@ -404,4 +418,4 @@ function URLValid(str: string) {
     else return true
 }
 
-$(".date").datepicker().on('show.bs.modal', (event) => event.stopPropagation())
+($(".date") as any).datepicker().on('show.bs.modal', (event) => event.stopPropagation())

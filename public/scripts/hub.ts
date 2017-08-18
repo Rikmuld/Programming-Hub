@@ -18,8 +18,11 @@
         const start = name.attr("start")
         const end = name.attr("end")
 
-        mod.getJq("start").parent().datepicker('setDate', new Date(start))
-        mod.getJq("end").parent().datepicker('setDate', new Date(end))
+        const startPar = mod.getJq("start").parent() as any
+        startPar.datepicker('setDate', new Date(start))
+        
+        const endPar = mod.getJq("end").parent() as any
+        endPar.datepicker('setDate', new Date(end))
     })
 
     const modDelete = new ModalFormValidator("#removeCourse", "removeCourse", "courseRemoved")

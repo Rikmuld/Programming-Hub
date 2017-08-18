@@ -8,9 +8,6 @@ block append scripts
     script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/handin.js")
 
-block append styles
-    link(href="/styles/flip.css" rel="stylesheet")
-
 block nav_right
     if file.assignment && file.assignment.group 
         if user.admin
@@ -27,7 +24,7 @@ block nav_right
             +navbar-a("/group/" + file.assignment.group._id, file.assignment.group.name)
 
 block content
-    .container
+    .container#groupData(name=file.assignment.group.name)
         - var zipURL = file.urls.pop()
         if file.assignment && file.assignment.typ != "open" && file.timestamp > file.assignment.due
             .alert.alert-warning
@@ -58,11 +55,14 @@ block content
             h2 Students
             
             +card-container
-                for user in file.students
+                for usr in file.students
                     +card()
-                        +card-simple(user.name + " " + user.surename)
+                        +card-simple(usr.name + " " + usr.surename, "/group/" + file.assignment.group._id + "/user/" + usr._id)
                         +card-icons()
-                            a.btn.btn-primary.btn-card-icon.cpointer(href="mailto:" + user._id + "@student.utwente.nl")
+                            if user.admin
+                                a.btn.btn-success.btn-card-icon.cpointer(href="/group/" + file.assignment.group._id + "/user/" + usr._id)
+                                    span.oi.oi-list
+                            a.btn.btn-primary.btn-card-icon.cpointer(href="mailto:" + usr._id + "@student.utwente.nl")
                                 span.oi.oi-envelope-open
 
 

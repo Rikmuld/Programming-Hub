@@ -165,6 +165,17 @@ class ModalFormValidator {
     hideError() {
         this.errorContainer.addClass("hidden");
     }
+    onChange(field, callback) {
+        this.fields.get(field).jq.on("input", (e) => {
+            callback(this.fields.get(field).value());
+        });
+    }
+    setAttribute(field, attribute, value) {
+        this.fields.get(field).jq.attr(attribute, value);
+    }
+    setProp(field, attribute, value) {
+        this.fields.get(field).jq.prop(attribute, value);
+    }
     addError(error) {
         const li = document.createElement("li");
         li.innerText = error;

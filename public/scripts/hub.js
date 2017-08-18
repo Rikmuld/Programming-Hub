@@ -14,8 +14,10 @@ $(document).ready(() => {
         const name = mod.getJq("name");
         const start = name.attr("start");
         const end = name.attr("end");
-        mod.getJq("start").parent().datepicker('setDate', new Date(start));
-        mod.getJq("end").parent().datepicker('setDate', new Date(end));
+        const startPar = mod.getJq("start").parent();
+        startPar.datepicker('setDate', new Date(start));
+        const endPar = mod.getJq("end").parent();
+        endPar.datepicker('setDate', new Date(end));
     });
     const modDelete = new ModalFormValidator("#removeCourse", "removeCourse", "courseRemoved");
     modDelete.registerField("course", "course id", "#removeCourseName", ModalValues.attr("course"));

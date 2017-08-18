@@ -10,7 +10,7 @@ block append scripts
     script(src="/scripts/includes/timeline.js")
     script(src="/scripts/includes/cardicons.js")
     script(src="/scripts/includes/selectTrigger.js")
-    script(src="/scripts/overview.js")
+    script(src="/scripts/overviewAdmin.js")
     script(src="/scripts/includes/js/checkedListGroup.js")
     script
         |initListGroup($("#studentUserList"))
@@ -29,7 +29,6 @@ block nav_right
         +dropdown-a(group.id + "/assignment", "Result by Assignment")
 
 block append styles
-    link(href="/styles/flip.css" rel="stylesheet")
     link(href="/styles/dropzone.min.css" rel="stylesheet")
     link(href="/styles/dropzoneCustom.css" rel="stylesheet")
 
@@ -157,11 +156,5 @@ block groupContent
                 | Hand-in data (files, feedback and reflections) will be kept and can still be accessed as normal. This action can completely be reversed by re-adding the user.
     
     +modal('addUsers', "Add Users", 'primary', 'Add Users')
-        .row
-            .col-7
-                .well.multiSelect#userSelect
-                    ul.list-group.checked-list-box#allUserList
-            .col-5
-                .input-group
-                    +select("Role", 'userRole')
-                        option(value="student") Student
+        .well.multiSelect#userSelect
+            ul.list-group.checked-list-box#allUserList

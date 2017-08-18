@@ -264,11 +264,28 @@ var Sockets;
     //send mail to students that the instructor added or updated the feedback for their submission
     function updateFeedback(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_FEEDBACK, success, error && error.message ? error.message : error);
-        return (file, feedback) => {
+        return (file, groupName, feedback) => {
             if (socket.request.session.passport) {
                 const user = socket.request.session.passport.user;
                 if (user.admin) {
-                    Files_1.Files.instance.updateFeedback(file, feedback).then(f => emitResult(true), e => emitResult(false, e));
+                    let updated = false;
+                    Files_1.Files.instance.updateOne(file, file => {
+                        if (file.feedback.length > 0)
+                            updated = true;
+                        file.feedback = feedback;
+                    }).then(f => {
+                        if (!updated) {
+                            const mail = Mail_1.Mail.createBasicMailList(`${user.name + " " + user.surename}`, "admin", f.students.map(s => s + "@student.utwente.nl"), `You have received feedback on '${f.name}'`);
+                            mail.html = `<p>Your submission '${f.name}' on the ATLAS Hub just received feedback.<br>You can view your feedback on the ATLAS Hub by clicking <a href="https://uct.onl/file/${f._id}">here</a>.</p><p>This is an automated message to which cannot be replied.</p>`;
+                            Mail_1.Mail.sendMail(mail);
+                        }
+                        else {
+                            const mail = Mail_1.Mail.createBasicMailList(`${user.name + " " + user.surename}`, "admin", f.students.map(s => s + "@student.utwente.nl"), `The feedback on '${f.name}' was updated`);
+                            mail.html = `<p>Your feedback on submission '${f.name}' was updated.<br>You can view your feedback on the ATLAS Hub by clicking <a href="https://uct.onl/file/${f._id}">here</a>.</p><p>This is an automated message to which cannot be replied.</p>`;
+                            Mail_1.Mail.sendMail(mail);
+                        }
+                        emitResult(true);
+                    }, e => emitResult(false, e));
                 }
                 else
                     emitResult(false, "You have insufficient rights to perform this action.");
@@ -281,7 +298,7 @@ var Sockets;
     //TODO still needs an isAdmin check!!!
     function addUsers(app, socket) {
         const emitResult = (success, error) => socket.emit(RESULT_ADD_USERS, success, error);
-        return (group, users, role) => {
+        return (group, role, users) => {
             console.log(group, users, role);
             if (socket.request.session.passport) {
                 const user = socket.request.session.passport.user;
@@ -358,11 +375,29 @@ var Sockets;
                         return Future_1.Future.unit(true);
                     }
                 });
+                const sendMails = (fileId) => {
+                    const mailAdmin = Mail_1.Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", instructors.map(u => u + "@gmail.com"), "New submission on '" + assignmentName + "'");
+                    if (students.length > 1)
+                        mailAdmin.html = `<p>Students: ${students.reduce((acc, next) => acc + ((acc.length > 0) ? ", " : "") + next, "")} send in a submission for assignment ${assignmentName}.`;
+                    else
+                        mailAdmin.html = `<p>Student ${students[0]} has send in a submission for assignment ${assignmentName}.`;
+                    mailAdmin.html += `<br>You can view this submission online at: <a href="https://uct.onl/file/${fileId}">${handInName}</a></p><p>This is an automated message to which cannot be replied.</p>`;
+                    Mail_1.Mail.sendMail(mailAdmin);
+                    if (students.length > 0) {
+                        const partners = students.filter(s => s != user.id);
+                        const mailPartners = Mail_1.Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", partners.map(u => u + "@student.utwente.nl"), "You were added to a submission");
+                        mailPartners.html = `<p>Student ${user.id} added you to his submission for assignment '${assignmentName}'.<br>You can view this submission online at: <a href="https://uct.onl/file/${fileId}">${handInName}</a></p><p>You need to either accept or decline this submission from the <a href="https://uct.onl/group/${groupId}">course home page</a>. It is recommended that you do this as soon as possible</p><p>This is an automated message to which cannot be replied.</p>`;
+                        Mail_1.Mail.sendMail(mailPartners);
+                    }
+                };
                 const quickCreate = (success) => {
                     if (!success)
                         emitResult(false, "We were not able to validate your hand-in!");
                     else {
-                        Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).flatMap(file => Users_1.Users.instance.makeFinal(user.id, groupId, file._id)).then(() => emitResult(true), e => emitResult(false, e));
+                        Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).flatMap(file => {
+                            sendMails(file._id);
+                            return Users_1.Users.instance.makeFinal(user.id, groupId, file._id);
+                        }).then(() => emitResult(true), e => emitResult(false, e));
                     }
                 };
                 const upload = (success) => {
@@ -391,13 +426,7 @@ var Sockets;
                             outZip.on('close', function () {
                                 Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
                                     const id = file._id;
-                                    const mailAdmin = Mail_1.Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", instructors.map(u => u + "@gmail.com"), "New submission on '" + assignmentName + "'");
-                                    if (students.length > 1)
-                                        mailAdmin.html = `<p>Students: ${students.reduce((acc, next) => acc + ((acc.length > 0) ? ", " : "") + next, "")} send in a submission for assignment ${assignmentName}.`;
-                                    else
-                                        mailAdmin.html = `<p>Student ${students[0]} has send in a submission for assignment ${assignmentName}.`;
-                                    mailAdmin.html += `<br>You can view this submission online at: <a href="https://uct.onl/file/${id}">${handInName}</a></p><p>This is an automated message to which cannot be replied.</p>`;
-                                    Mail_1.Mail.sendMail(mailAdmin);
+                                    sendMails(id);
                                     storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
                                         storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
                                             const fileToLink = (fileName) => new Future_1.Future((res, rej) => {

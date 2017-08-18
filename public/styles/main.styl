@@ -86,6 +86,9 @@
 #addon_courseEnd, #addon_courseStart
 	width 95px
 
+.alert p:last-child
+	margin-bottom 0px
+
 .errors
 	margin-bottom 0
 
@@ -117,7 +120,7 @@
 .collapse-button.collapsed
 	transform rotate(0deg)
 
-//remove below
+//remove below (a lot can be removed)
 
 //variables
 
@@ -182,31 +185,6 @@ div
 //TODO readd size
 //#header
 
-//headings
-
-#subheader
-	margin-top -12px
-	font-family Open Sans
-	font-weight 100
-	font-size 20px
-	text-align left
-
-#subheadersmall
-	margin-top -12px
-	margin-bottom 20px
-	font-family Open Sans
-	font-weight 100
-	font-size 18px
-	text-align center
-
-	
-h3.special
-	font-family Open Sans
-	font-weight 100
-	font-size 22px
-	color blueish
-	text-align left
-
 //upload/dropzone page
 
 #upload
@@ -234,63 +212,6 @@ h3.special
 
 textarea
 	min-height 100px
-
-#profileImage
-	float right
-	padding-top 13px
-	img
-		width 75px
-		border-radius 50px
-	a:hover, a:focus
-		text-decoration none
-
-#profileImageID
-	width: 75px
-	height: 75px
-	font-size: 24px
-	color: #fff
-	text-align: center
-	line-height: 75px
-	border-radius 50px
-
-.group
-	height 175px
-
-.btn-card, .btn-card-table
-	border-radius 0px
-	background-color transparent
-	font-size 24px
-	color #333
-
-.btn-card-table
-	font-size 18px
-
-.icons-text
-	text-align left
-	bottom 0px
-	position absolute
-
-.btn-card:hover, .btn-card-table:hover
-	background-color rgba(0, 0, 0, .05)
-
-.top-icons
-	button, a
-		border-bottom 1px solid rgba(0, 0, 0, .05)
-
-.top-icons, .bottom-icons
-	:not(:last-child)
-		border-right 1px solid rgba(0, 0, 0, .05)
-
-.cardLink
-	h3
-		margin-top 10px
-		margin-bottom 10px
-
-.cardLink:hover
-	cursor: pointer
-	box-shadow: 0 5px 15px rgba(0,0,0,.15);
-	-webkit-box-shadow: 0 5px 15px rgba(0,0,0,.15);
-	transition 0.2s
 
 #sendButtons
 	@extends .center
@@ -375,42 +296,7 @@ date
 
 .mbottom5
 	margin-bottom 5px
-
-.card-table-container
-	width 50%
-	float left
-	height 60px
-	.flipper
-		height 60px
-
-.card-table-content
-	border-top 1px solid rgba(0,0,0,0.05)
-	background-color white
-	height 60px
-	h3
-		margin 0px
-		text-align center
-	text-align center
 	
-.card-table-header
-	.card-table-content
-		border-top none
-		border-bottom 3px solid #e3e3e3
-	.card-table-container
-		width 100%
-
-// .card-table-body
-// 	:nth-child(even)
-// 		border-left 1px solid rgba(0,0,0,0.05)
-
-.back
-	border-left none !important
-	
-.card-table
-	overflow hidden
-	box-shadow: 0 5px 15px rgba(0,0,0,.05);
-	-webkit-box-shadow: 0 5px 15px rgba(0,0,0,.05);
-
 #userSelect
 	max-height 300px
 	overflow auto
@@ -430,49 +316,5 @@ date
 .checked-list-box
 	margin-bottom 0px
 
-.assignmentBulb
-	width 10px
-	height 10px
-	position absolute
-	border-radius 10px
-
-.assignmentStateBulb
-	@extends .assignmentBulb
-	top 15px
-	right 15px
-
-.assignmentStateFeedback
-	@extends .assignmentBulb
-	top 30px
-	right 15px
-
-.back-normal	
-	background-color #333
-
-.back-done
-	background-color #5cb85c
-
-.back-late	
-	background-color #f0ad4e
-
-.back-final
-	background-color #5bc0de
-
-.back-due	
-	background-color #d9534f
-
-.back-open
-	background-color #337ab7
-
-h
-	a
-		color #333
-
 a:hover, a:focus
 	text-decoration none
-
-.whiteContainer
-	background-color white
-	padding 15px
-	box-shadow 0 5px 15px rgba(0,0,0,0.05)
-	-webkit-box-shadow 0 5px 15px rgba(0,0,0,0.05)
