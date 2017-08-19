@@ -1,0 +1,69 @@
+extends ../groupPage.jade
+
+include ../../includes/basic.jade
+
+append styles
+    link(href="/styles/print.css" rel="stylesheet")
+
+block nav_right
+    +navbar-a("./", group.name)
+    +navbar-a-active("", "Result Overview")
+
+block groupContent
+    .noPrint
+        .alert.alert-info
+            p The result overview is currently a work in progress!
+        .section-container
+            h2 Result Overview
+            p.lead Click the button below to print your overview, note that you can save it to PDF as well.
+            .section-buttons
+                button.btn.btn-outline-primary.btn-section.cpointer(onclick="window.print()")
+                    span.oi.oi-print
+    .onlyPrint
+        - var newFiles = []
+        - var removedAssFiles = []
+        for file in files
+            if file.file.assignment != null
+                - newFiles.push(file)
+            else
+                - removedAssFiles.push(file)
+        - files = newFiles
+
+        .section-container
+            h1
+                p= group.name
+                p.small Result Overview
+            p.lead= new Date().toDateString()
+            p.lead The folling handins are available:
+            ul.simple
+                for file in files
+                    li= file.file.name
+            if group.assignments.length == 0
+                p.lead No assignments were handed in.
+        if group.assignments.length > 0
+            for ass in group.assignments
+                - var assFiles = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
+                    if assFiles.length > 0
+                        for file in assFiles
+                            .section-container
+                                h2
+                                    p= ass.name
+                                    p.small=file.file.name
+                                p.lead=file.file.students
+                                p= file.file.timestamp.toDateString()
+                                .align-left.mt-5
+                                    h4 Notes
+                                    if file.file.notes.length == 0
+                                        p No notes were provided.
+                                    else
+                                        p= file.file.notes
+                                    h4 Files
+                                    if file.file.urls.length == 0
+                                        p No files was uploaded.
+                                    else
+                                        p Files cannot be displayed for now.
+                                    h4 Feedback
+                                    if file.file.feedback.length == 0
+                                        p No feedback was provided.
+                                    else
+                                        p= file.file.feedback

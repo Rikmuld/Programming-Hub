@@ -48,6 +48,6 @@ export namespace Mail {
                     else res(info)
                 })
             }))
-        } else return Future.reject("Sending email is not enabled!")
+        } else return Future.unit("Sending email is not enabled!")
     }
 }

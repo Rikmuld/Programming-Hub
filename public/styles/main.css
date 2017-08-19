@@ -180,6 +180,9 @@ div {
   bottom: 10px;
   width: 100%;
 }
+.align-left {
+  text-align: left;
+}
 #upload {
   display: none;
   margin-bottom: 40px;

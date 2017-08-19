@@ -42,6 +42,7 @@ export namespace Routes {
     const GROUP_ANY = GROUP + "/*"
     const GROUP_USER_OVERVIEW = GROUP_ANY + "/user"
     const GROUP_USER = GROUP_USER_OVERVIEW + "/*"
+    const RESULT_OVERVIEW = GROUP_ANY + "/overview"
     const FEEDBACK_LIST = GROUP_ANY + "/feedback"
     const FEEDBACK_LATEST = FEEDBACK_LIST + "/latest"
     const GROUP_ASSIGNMENT_OVERVIEW = GROUP_ANY + "/assignment"
@@ -63,6 +64,7 @@ export namespace Routes {
         app.get(LOGOUT, logout)
         app.get(PRIVACY, showPrivacy)
         app.get(RESULTS, results)
+        app.get(RESULT_OVERVIEW, resultOverview)
         app.get(GROUP_ASSIGNMENT_OVERVIEW, assignmentOver)
         app.get(GROUP_ASSIGNMENT, assignment)
         app.get(GROUP_USER_OVERVIEW, userOver)
@@ -116,6 +118,16 @@ export namespace Routes {
         else Groups.getGroup(group).then(g => {
             if((g.admins as Tables.User[]).findIndex(a => a._id == req.user.id) >= 0) Render.withUser(req, res, "group/overviewAdmin", { group: g }) 
             else Files.forStudentInGroup(req.user.id, group).then(userFiles => Render.withUser(req, res, "group/overview", { group: g, student: userFiles._1, files: userFiles._2 }), e => Render.error(req, res, e.toString()))
+        }, e => Render.error(req, res, e.toString()))
+    }
+    
+    function resultOverview(req: Req, res: Res) {
+        const data = req.url.split("/")
+        const group = data[2]
+
+        if (!req.user) res.redirect("/")
+        else Groups.getGroup(group).then(g => {
+            Files.forStudentInGroup(req.user.id, group).then(userFiles => Render.withUser(req, res, "group/overviews/results", { group: g, student: userFiles._1, files: userFiles._2 }), e => Render.error(req, res, e.toString()))
         }, e => Render.error(req, res, e.toString()))
     }
 

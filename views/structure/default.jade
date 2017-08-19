@@ -3,7 +3,7 @@
 include ../includes/navbar.jade
 
 block header
-    +navbar("ATLAS Hub", "navHeader", "/")
+    +navbar("ATLAS Hub", "navHeader", "/")(class="noPrint")
         .navbar-nav.mr-auto
             if user
                 if homeActive
@@ -36,5 +36,5 @@ block content_nouser
             |&nbsp;with your utwente email address first.
 
 block footer
-    .container.center
+    .container.center.noPrint
         p.small ATLAS Hub v. 0.8 © Rik Mulder 2017

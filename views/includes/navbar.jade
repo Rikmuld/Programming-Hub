@@ -1,5 +1,5 @@
 mixin navbar(brand, id, href)
-    nav.navbar.navbar-expand-md.navbar-dark.bg-dark
+    nav.navbar.navbar-expand-md.navbar-dark.bg-dark&attributes(attributes)
         a.navbar-brand(href=href)= brand
         button.navbar-toggler(type="button" data-toggle="collapse" data-target="#" + id aria-controls=id aria-expanded="false" aria-label="Toggle navigation")
             span.navbar-toggler-icon

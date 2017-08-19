@@ -8,7 +8,6 @@ block append scripts
     script
         |$('.datepicker').datepicker();
     script(src="/scripts/includes/timeline.js")
-    script(src="/scripts/includes/cardicons.js")
     script(src="/scripts/includes/selectTrigger.js")
     script(src="/scripts/overview.js")
     script(src="/scripts/includes/js/checkedListGroup.js")
@@ -35,6 +34,12 @@ block groupContent
     - var asses = []
     - var asses_o = false
     - var asses_done = []
+
+    - var newFiles = []
+    for file in files
+        if file.file.assignment != null
+            - newFiles.push(file)
+    - files = newFiles
 
     for ass in group.assignments
         if ass.typ == "open"

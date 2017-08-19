@@ -41,7 +41,7 @@ var Mail;
             }));
         }
         else
-            return Future_1.Future.reject("Sending email is not enabled!");
+            return Future_1.Future.unit("Sending email is not enabled!");
     }
     Mail.sendMail = sendMail;
 })(Mail = exports.Mail || (exports.Mail = {}));
