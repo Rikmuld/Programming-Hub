@@ -1,6 +1,15 @@
 let otherUsers = [];
 let nonUsers;
 $(document).ready(() => {
+    function getGroupId() {
+        return $("#group_data").attr("group");
+    }
+    function getStartDate() {
+        return new Date($("#group_data").attr("start"));
+    }
+    function getEndDate() {
+        return new Date($("#group_data").attr("end"));
+    }
     const assignmentCreate = new ModalFormValidator("#addAssignment", "createAssignment", "assignmentCreated");
     assignmentCreate.addValues(getGroupId());
     assignmentCreate.registerField("name", "assignment name", "#assignmentName", ModalValues.value);
@@ -45,8 +54,6 @@ $(document).ready(() => {
         const duePar = mod.getJq("due").parent();
         duePar.datepicker('setDate', new Date(mod.modal.attr("due")));
         mod.setValue("type", mod.modal.attr("type"));
-        console.log(mod.getValue("assignment"));
-        console.log(mod.getJq("assignment"));
         selectClicked(mod.getJq("type"));
     });
     assignmentUpdate.addValidation(new Validator(ModalValidators.ifthen(s => s == "open", nameValid), "type").disableErrors());
@@ -95,15 +102,6 @@ $(document).ready(() => {
     addUsers.addValidation(new Validator(ModalValidators.minSize(1), "users"));
     socket.on('usersGot', usersGot);
 });
-function getGroupId() {
-    return $("#group_data").attr("group");
-}
-function getStartDate() {
-    return new Date($("#group_data").attr("start"));
-}
-function getEndDate() {
-    return new Date($("#group_data").attr("end"));
-}
 function getUsers(users) {
     if (!nonUsers)
         socket.emit("getUsers", JSON.parse(users));
@@ -129,4 +127,8 @@ function usersGot(users) {
     }
     else
         initListGroup($("#allUserList"));
+}
+function mailUsers(students) {
+    const mailUsers = students.split(',').filter(s => otherUsers.findIndex(s2 => s2._id == s) == -1).map(s => s + "@student.utwente.nl,");
+    window.location.href = "mailto:" + mailUsers;
 }

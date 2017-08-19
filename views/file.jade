@@ -92,9 +92,9 @@ block content
             .section-container
                 h2 Feedback
                 if file.feedback.length > 0
-                    p.lead= file.feedback.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
+                    p.lead#feedbackMessage= file.feedback.replace(new RegExp("\n", 'g'), "<br>").replace(new RegExp("  ", 'g'), " &nbsp")
                 else
-                    p.lead You did not provide any feedback yet!
+                    p.lead#feedbackMessage You did not provide any feedback yet!
                 
                 if user.admin
                     .section-buttons

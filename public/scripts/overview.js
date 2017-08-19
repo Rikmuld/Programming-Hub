@@ -1,4 +1,13 @@
 $(document).ready(() => {
+    function getGroupId() {
+        return $("#group_data").attr("group");
+    }
+    function getStartDate() {
+        return new Date($("#group_data").attr("start"));
+    }
+    function getEndDate() {
+        return new Date($("#group_data").attr("end"));
+    }
     const nameValid = new Validator(ModalValidators.atLeast(8), "name");
     const acceptAssignment = new ModalFormValidator("#acceptAssignment", "manageFinal", "doneFinal", true);
     acceptAssignment.addValues(true, getGroupId());
@@ -14,5 +23,4 @@ $(document).ready(() => {
     uploadFiles.registerField("files", "files", "#uploadedFilesList", getSelected);
     uploadFiles.addValidation(nameValid);
     uploadFiles.addValidation(new Validator(ModalValidators.or(s => s.length > 0, "Either add some comments, or upload and select at least one file!"), "comments", "files"));
-    socket.on('usersGot', usersGot);
 });

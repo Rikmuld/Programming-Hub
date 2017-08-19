@@ -39,8 +39,9 @@ block groupContent
                         +card-icons()
                             a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
                                     span.oi.oi-list
-                            button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
-                                span.oi.oi-cog
+                            if ass.typ != "open"
+                                button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
+                                    span.oi.oi-cog
                             if ass.link.length > 0
                                 a.btn.btn-info.btn-card-icon.cpointer(href="http://" + ass.link target="_blank")
                                     span.oi.oi-info
@@ -80,8 +81,7 @@ block groupContent
             button.btn.btn-outline-primary.btn-section.cpointer(type="button" data-toggle="modal" data-target="#addUsers" onclick='javascript:getUsers(`[#{users}]`)')
                 span.oi.oi-plus
             if group.students.length > 0
-                - var mailStudents = group.students.map(s => s._id + "@student.utwente.nl,")
-                a#mailAllButton.btn.btn-outline-primary.btn-section.ml-2(href="mailto:" + mailStudents)
+                a#mailAllButton.btn.btn-outline-primary.btn-section.ml-2(href='javascript:mailUsers(`#{group.students.map(s => s._id)}`)')
                     span.oi.oi-envelope-open
 
 

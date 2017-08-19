@@ -143,8 +143,8 @@ export namespace Sockets {
         const emitResult = (success: boolean, error?: string) => socket.emit(RESULT_UPDATE_ASSIGNMENT, success, error && (error as any).message ? (error as any).message : error)
 
         return (group, ass, name, type, due, link) => {
-            console.log(group, ass, name, type, due, link)
-            if (socket.request.session.passport) {
+            if(type == 'open') emitResult(false, "You cannot edit an open assignment!")
+            else if (socket.request.session.passport) {
                 const user = socket.request.session.passport.user
                 if (user.admin) {
                     Groups.instance.isAdmin(group, user.id).flatMap(isAdmin => {
@@ -368,8 +368,9 @@ export namespace Sockets {
 
                     Mail.sendMail(mailAdmin)
 
-                    if(students.length > 0) {
-                        const partners = students.filter(s => s != user.id)
+                    const partners = students.filter(s => s != user.id)
+
+                    if(partners.length > 0) {
                         const mailPartners = Mail.createBasicMailList("ATLAS Hub: " + groupName, "course", partners.map(u => u + "@student.utwente.nl"), "You were added to a submission")
 
                         mailPartners.html = `<p>Student ${user.id} added you to his submission for assignment '${assignmentName}'.<br>You can view this submission online at: <a href="https://uct.onl/file/${fileId}">${handInName}</a></p><p>You need to either accept or decline this submission from the <a href="https://uct.onl/group/${groupId}">course home page</a>. It is recommended that you do this as soon as possible</p><p>This is an automated message to which cannot be replied.</p>`

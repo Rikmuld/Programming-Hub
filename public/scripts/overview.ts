@@ -1,6 +1,18 @@
 ﻿declare function getSelected(container): string[]
 
 $(document).ready(() => {
+    function getGroupId() {
+        return $("#group_data").attr("group")
+    }
+
+    function getStartDate(): Date {
+        return new Date($("#group_data").attr("start"))
+    }
+
+    function getEndDate(): Date {
+        return new Date($("#group_data").attr("end"))
+    }
+
     const nameValid = new Validator(ModalValidators.atLeast(8), "name")
 
     const acceptAssignment = new ModalFormValidator("#acceptAssignment", "manageFinal", "doneFinal", true)
@@ -20,6 +32,4 @@ $(document).ready(() => {
 
     uploadFiles.addValidation(nameValid)
     uploadFiles.addValidation(new Validator(ModalValidators.or(s => s.length > 0, "Either add some comments, or upload and select at least one file!"), "comments", "files"))
-
-    socket.on('usersGot', usersGot)
 })

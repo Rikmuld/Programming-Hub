@@ -198,6 +198,7 @@ class ModalFormValidator {
             errors.forEach((e) => this.addError(e))
         } else {
             this.hideError()
+
             socket.emit(this.sendId, ...this.values, ...this.fields.values().map(f => f.value()))
         }
     }
