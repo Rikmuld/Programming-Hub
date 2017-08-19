@@ -14,4 +14,5 @@ function setAssignmentResults(html, assignment) {
     par.find(".timeline").each(function () {
         setupTimeline($(this));
     });
+    setupTooltipIn(par);
 }

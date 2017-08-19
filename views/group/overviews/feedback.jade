@@ -41,11 +41,12 @@ block groupContent
                     - var assignment = group.assignments.find(a => a._id == file.assignment)
                     +card()
                         +card-simple(assignment.name, "/file/" + file._id)
-                            span #{file.students[0].name} #{file.students[0].surename} 
-                            - var done = file.students[0]._id
-                            for student in file.students
-                                if student._id != done
-                                    span / #{student.name} #{student.surename} 
+                            span 
+                                |#{file.students[0].name} #{file.students[0].surename} 
+                                - var done = file.students[0]._id
+                                for student in file.students
+                                    if student._id != done
+                                        | / #{student.name} #{student.surename} 
                             .card-date-sepperator
                             if assignment.typ != "open"
                                 if file.timestamp > assignment.due
