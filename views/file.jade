@@ -22,6 +22,7 @@ block nav_right
                 +dropdown-a("/group/" + file.assignment.group._id  + "/assignment", "Result by Assignment")
         else if file.students.map(s => s._id.toString()).indexOf(user.id) >= 0
             +navbar-a("/group/" + file.assignment.group._id, file.assignment.group.name)
+            +navbar-a("/group/" + file.assignment.group._id + "/overview", "Result Overview")
 
 block content
     .container#groupData(name=file.assignment.group.name)

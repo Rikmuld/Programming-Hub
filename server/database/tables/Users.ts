@@ -58,7 +58,10 @@ class User extends Table<Tables.User> {
         const areFinal = files.map(f => f.final)
         const fileIds = files.map(f => f.file.toString())
 
-        return Future.lift(Files.instance.getByIDs(fileIds).populate("assignment").exec()).map(f => {
+        return Future.lift(Files.instance.getByIDs(fileIds).populate("assignment").populate({
+            "path": "students",
+            "select": "name surename"
+        }).exec()).map(f => {
             return f.map(file => {
                 return {
                     file: file,

@@ -11,8 +11,6 @@ block nav_right
 
 block groupContent
     .noPrint
-        .alert.alert-info
-            p The result overview is currently a work in progress!
         .section-container
             h2 Result Overview
             p.lead Click the button below to print your overview, note that you can save it to PDF as well.
@@ -33,13 +31,20 @@ block groupContent
             h1
                 p= group.name
                 p.small Result Overview
-            p.lead= new Date().toDateString()
-            p.lead The folling handins are available:
-            ul.simple
-                for file in files
-                    li= file.file.name
-            if group.assignments.length == 0
-                p.lead No assignments were handed in.
+            p.lead= user.name + " " + user.surename + " (" + user.id + ")"
+            p= new Date().toDateString()
+            .align-left.mt-5
+                h2 Sumissions
+                p The following items were submitted: 
+                ul
+                    for file in files
+                        li
+                            span= file.file.name + " ("
+                            a(href="https://uct.onl/file/" + file.file._id)= "https://uct.onl/file/" + file.file._id
+                            span )
+                p The following pages will cover the notes, files and feedback of these submissions.
+        if group.assignments.length == 0
+            p.lead No assignments were handed in.
         if group.assignments.length > 0
             for ass in group.assignments
                 - var assFiles = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
@@ -49,7 +54,7 @@ block groupContent
                                 h2
                                     p= ass.name
                                     p.small=file.file.name
-                                p.lead=file.file.students
+                                p.lead=file.file.students.reduce((acc, next) => acc + ((acc.length == 0)?"":", ") + next.name + " " + next.surename, "")
                                 p= file.file.timestamp.toDateString()
                                 .align-left.mt-5
                                     h4 Notes
@@ -58,10 +63,17 @@ block groupContent
                                     else
                                         p= file.file.notes
                                     h4 Files
-                                    if file.file.urls.length == 0
+                                    if file.file.urls.length <= 1
                                         p No files was uploaded.
                                     else
-                                        p Files cannot be displayed for now.
+                                        - var zip = file.file.urls.pop()
+                                        p The following files were uploaded:
+                                        ul
+                                            for url in file.file.urls
+                                                li= url.split("/")[6].split("?")[0]
+                                        p An archive containing all files can be downloaded using the following link:
+                                        p
+                                            a(href=zip)= zip
                                     h4 Feedback
                                     if file.file.feedback.length == 0
                                         p No feedback was provided.

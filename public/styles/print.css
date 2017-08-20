@@ -15,4 +15,7 @@ ul.simple {
   .onlyPrint {
     display: block;
   }
+  a {
+    word-break: break-all;
+  }
 }

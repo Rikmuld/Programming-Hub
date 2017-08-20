@@ -56,7 +56,10 @@ class User extends Table_1.Table {
         const files = user.groups.find(g => g.group == group).files;
         const areFinal = files.map(f => f.final);
         const fileIds = files.map(f => f.file.toString());
-        return Future_1.Future.lift(Files_1.Files.instance.getByIDs(fileIds).populate("assignment").exec()).map(f => {
+        return Future_1.Future.lift(Files_1.Files.instance.getByIDs(fileIds).populate("assignment").populate({
+            "path": "students",
+            "select": "name surename"
+        }).exec()).map(f => {
             return f.map(file => {
                 return {
                     file: file,
