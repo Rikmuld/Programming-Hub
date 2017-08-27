@@ -41,7 +41,7 @@ block groupContent
                             +card-container
                                 for file in theAssignment.files
                                     +card()
-                                        +card-simple(theAssignment.name, "/file/" + file._id)
+                                        +card-simple(file.name, "/file/" + file._id)
                                             span 
                                                 |#{file.students[0].name} #{file.students[0].surename} 
                                                 - var done = file.students[0]._id

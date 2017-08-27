@@ -20,21 +20,28 @@ block content
                     +card-container()
                         for file in group.files
                             +card()
-                                +card-simple(file.file.assignment.name, "/file/" + file.file._id)
-                                    span= file.file.name
-                                .card-date-sepperator
-                                if file.file.assignment.typ != "open"
-                                    if file.file.timestamp > file.file.assignment.due
-                                        .card-date.d-flex.card-date-done.bg-warning
-                                            .mr-auto.small= file.file.timestamp.toDateString()
-                                            .ml-auto.small= file.file.assignment.due.toDateString()
+                                if file.file.assignment
+                                    +card-simple(file.file.assignment.name, "/file/" + file.file._id)
+                                        span= file.file.name
+                                    .card-date-sepperator
+                                    if file.file.assignment.typ != "open"
+                                        if file.file.timestamp > file.file.assignment.due
+                                            .card-date.d-flex.card-date-done.bg-warning
+                                                .mr-auto.small= file.file.timestamp.toDateString()
+                                                .ml-auto.small= file.file.assignment.due.toDateString()
+                                        else
+                                            .card-date.d-flex.card-date-done.bg-success
+                                                .mr-auto.small= file.file.timestamp.toDateString()
+                                                .ml-auto.small= file.file.assignment.due.toDateString()
                                     else
                                         .card-date.d-flex.card-date-done.bg-success
                                             .mr-auto.small= file.file.timestamp.toDateString()
-                                            .ml-auto.small= file.file.assignment.due.toDateString()
-                                else
-                                    .card-date.d-flex.card-date-done.bg-success
-                                        .mr-auto.small= file.file.timestamp.toDateString()
+                                else 
+                                    +card-simple("Removed Assignment", "/file/" + file.file._id)(class="text-danger")
+                                        span= file.file.name
+                                    .card-date-sepperator
+                                        .card-date.d-flex.card-date-done.bg-success
+                                            .mr-auto.small= file.file.timestamp.toDateString()
                                 +card-icons()
                                     a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file.file._id)
                                         span.oi.oi-list
