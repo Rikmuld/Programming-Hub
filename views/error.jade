@@ -1,6 +1,7 @@
 ﻿extends structure/default.jade
 
 block content
+    - var fixedError = error.replace(/"/g, `'`)
     .container
         .section-container
             h2 Errors happen ¯\_(ツ)_/¯
@@ -12,9 +13,8 @@ block content
             .section-buttons
                 a.btn.btn-outline-primary.btn-section.cpointer(href="/")
                     span.oi.oi-home
-                a.btn.btn-outline-primary.btn-section.cpointer.ml-2(href="mailto:rikmuld@gmail.com?subject=ATLAS Hub Error&body=Hi Rik,%0D%0A%0D%0AI found an error in the ATLAS Hub when I traveled to '#{path}', here is the error message:%0D%0A%0D%0A" + error.replace(/"/g, `'`))
+                a.btn.btn-outline-primary.btn-section.cpointer.ml-2(href="mailto:rikmuld@gmail.com?subject=ATLAS Hub Error&body=Hi Rik,%0D%0A%0D%0AI found an error in the ATLAS Hub when I traveled to '#{path}', here is the error message:%0D%0A%0D%0A" + fixedError)
                     span.oi.oi-bug
-            p= error
         p.bug1.text-center
             span.oi.oi-bug
         p.bug2.text-center
