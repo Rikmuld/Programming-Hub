@@ -2,11 +2,7 @@ const socket = io();
 $(document).ready(init);
 function init() {
     setupTooltipIn($("body"));
-    $(window).resize(() => {
-        const anycard = $(".card");
-        anycard.tooltip("dispose");
-        setupTooltipIn($("body"));
-    });
+    $(window).resize(() => setupTooltipIn($("body")));
 }
 function setupTooltipIn(container) {
     container.find(".card").each(function () {
@@ -17,6 +13,7 @@ function setupTooltipIn(container) {
         const overflowTitle = title[0].scrollWidth > Math.ceil(title.innerWidth());
         const overflowMessage = hasMessage && message.innerWidth() > Math.ceil(title.innerWidth());
         const anycard = card;
+        anycard.tooltip("dispose");
         if (overflowTitle && !overflowMessage) {
             anycard.tooltip({
                 "title": title.text()

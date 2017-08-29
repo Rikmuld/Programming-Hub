@@ -12,11 +12,7 @@ $(document).ready(init)
 
 function init() {
     setupTooltipIn($("body"))
-    $(window).resize(() => {
-        const anycard = $(".card") as any
-        anycard.tooltip("dispose")
-        setupTooltipIn($("body"))
-    })
+    $(window).resize(() => setupTooltipIn($("body")))
 }
 
 function setupTooltipIn(container: JQuery) {
@@ -30,6 +26,7 @@ function setupTooltipIn(container: JQuery) {
         const overflowMessage = hasMessage && message.innerWidth() >  Math.ceil(title.innerWidth())
 
         const anycard = card as any
+        anycard.tooltip("dispose")
 
         if(overflowTitle && !overflowMessage){
             anycard.tooltip({
