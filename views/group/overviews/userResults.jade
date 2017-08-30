@@ -3,19 +3,17 @@
 +card-container()
     for finalFiles in files
         - var file = finalFiles.file
-        +card()
+        +card(class="hoverer")
             +card-simple(file.assignment.name, "/file/" + file._id)
                 span= file.name
             .card-date-sepperator
             if file.assignment.typ != "open"
                 if file.timestamp > file.assignment.due
                     .card-date.d-flex.card-date-done.bg-warning
-                        .mr-auto.small= file.timestamp.toDateString()
-                        .ml-auto.small= file.assignment.due.toDateString()
+                        .mr-auto.small(hoverData="Due: " + file.assignment.due.toDateString())= file.timestamp.toDateString()
                 else
                     .card-date.d-flex.card-date-done.bg-success
-                        .mr-auto.small= file.timestamp.toDateString()
-                        .ml-auto.small= file.assignment.due.toDateString()
+                        .mr-auto.small(hoverData="Due: " + file.assignment.due.toDateString())= file.timestamp.toDateString()
             else
                 .card-date.d-flex.card-date-done.bg-success
                     .mr-auto.small= file.timestamp.toDateString()

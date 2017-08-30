@@ -3,6 +3,15 @@ $(document).ready(init);
 function init() {
     setupTooltipIn($("body"));
     $(window).resize(() => setupTooltipIn($("body")));
+    $(".card.hoverer").hover(function () {
+        $(this).children().find("[hoverData]").each(function () {
+            const hoverer = $(this);
+            const data = hoverer.attr("hoverData");
+            const text = hoverer.text();
+            hoverer.text(data);
+            hoverer.attr("hoverData", text);
+        });
+    });
 }
 function setupTooltipIn(container) {
     container.find(".card").each(function () {

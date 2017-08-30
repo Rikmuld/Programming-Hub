@@ -2,7 +2,7 @@
 
 +card-container
     for file in theAssignment.files
-        +card()
+        +card(class="hoverer")
             +card-simple(file.name, "/file/" + file._id)
                 span 
                     |#{file.students[0].name} #{file.students[0].surename} 
@@ -14,12 +14,10 @@
                 if theAssignment.typ != "open"
                     if file.timestamp > theAssignment.due
                         .card-date.d-flex.card-date-done.bg-warning
-                            .mr-auto.small= file.timestamp.toDateString()
-                            .ml-auto.small= theAssignment.due.toDateString()
+                            .mr-auto.small(hoverData="Due: " + theAssignment.due.toDateString())= file.timestamp.toDateString()
                     else
                         .card-date.d-flex.card-date-done.bg-success
-                            .mr-auto.small= file.timestamp.toDateString()
-                            .ml-auto.small= theAssignment.due.toDateString()
+                            .mr-auto.small(hoverData="Due: " + theAssignment.due.toDateString())= file.timestamp.toDateString()
                 else
                     .card-date.d-flex.card-date-done.bg-success
                         .mr-auto.small= file.timestamp.toDateString()

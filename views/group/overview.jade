@@ -61,7 +61,7 @@ block groupContent
             h2 Non-Final Assignments
 
             mixin nonFinalCard(ass, file)
-                +card()
+                +card(class="hoverer")
                     +card-simple(ass.name, "/file/" + file._id)
                         span= file.name
                     .card-date-sepperator
@@ -70,12 +70,10 @@ block groupContent
                             .small= file.timestamp.toDateString()
                     else if file.timestamp > ass.due
                         .card-date.d-flex.card-date-done.bg-warning
-                            .mr-auto.small= file.timestamp.toDateString()
-                            .ml-auto.small= ass.due.toDateString()
+                            .mr-auto.small(hoverData="Due: " + ass.due.toDateString())= file.timestamp.toDateString()
                     else
                         .card-date.d-flex.card-date-done.bg-success
-                            .mr-auto.small= file.timestamp.toDateString()
-                            .ml-auto.small= ass.due.toDateString()
+                            .mr-auto.small(hoverData="Due: " + ass.due.toDateString())= file.timestamp.toDateString()
                     +card-icons()
                         a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file._id)
                             span.oi.oi-list
@@ -128,18 +126,16 @@ block groupContent
             +card-container()
                 for ass in asses_done
                     - var file = files.filter(f => f.file.assignment._id.toString() == ass._id.toString())
-                    +card()
+                    +card(class="hoverer")
                         +card-simple(ass.name, "/file/" + file[0].file._id)
                             span= file[0].file.name
                         .card-date-sepperator
                         if file[0].file.timestamp > ass.due
                             .card-date.d-flex.card-date-done.bg-warning
-                                .mr-auto.small= file[0].file.timestamp.toDateString()
-                                .ml-auto.small= ass.due.toDateString()
+                                .mr-auto.small(hoverData="Due: " + ass.due.toDateString())= file[0].file.timestamp.toDateString()
                         else
                             .card-date.d-flex.card-date-done.bg-success
-                                .mr-auto.small= file[0].file.timestamp.toDateString()
-                                .ml-auto.small= ass.due.toDateString()
+                                .mr-auto.small(hoverData="Due: " + ass.due.toDateString())= file[0].file.timestamp.toDateString()
                         +card-icons()
                             a.btn.btn-primary.btn-card-icon.cpointer(href="/file/" + file[0].file._id)
                                 span.oi.oi-list

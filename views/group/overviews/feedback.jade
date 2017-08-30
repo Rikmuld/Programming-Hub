@@ -39,7 +39,7 @@ block groupContent
             +card-container
                 for file in allFiles
                     - var assignment = group.assignments.find(a => a._id == file.assignment)
-                    +card()
+                    +card(class="hoverer")
                         +card-simple(assignment.name, "/file/" + file._id)
                             span 
                                 |#{file.students[0].name} #{file.students[0].surename} 
@@ -51,12 +51,10 @@ block groupContent
                             if assignment.typ != "open"
                                 if file.timestamp > assignment.due
                                     .card-date.d-flex.card-date-done.bg-warning
-                                        .mr-auto.small= file.timestamp.toDateString()
-                                        .ml-auto.small= assignment.due.toDateString()
+                                        .mr-auto.small(hoverData="Due: " + assignment.due.toDateString())= file.timestamp.toDateString()
                                 else
                                     .card-date.d-flex.card-date-done.bg-success
-                                        .mr-auto.small= file.timestamp.toDateString()
-                                        .ml-auto.small= assignment.due.toDateString()
+                                        .mr-auto.small(hoverData="Due: " + assignment.due.toDateString())= file.timestamp.toDateString()
                             else
                                 .card-date.d-flex.card-date-done.bg-success
                                     .mr-auto.small= file.timestamp.toDateString()

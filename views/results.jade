@@ -19,7 +19,7 @@ block content
                 +acc-item(group.group._id, group.group.name, false, group.group.start.toLocaleDateString() + " to " + group.group.end.toLocaleDateString(), true)
                     +card-container()
                         for file in group.files
-                            +card()
+                            +card(class="hoverer")
                                 if file.file.assignment
                                     +card-simple(file.file.assignment.name, "/file/" + file.file._id)
                                         span= file.file.name
@@ -27,12 +27,10 @@ block content
                                     if file.file.assignment.typ != "open"
                                         if file.file.timestamp > file.file.assignment.due
                                             .card-date.d-flex.card-date-done.bg-warning
-                                                .mr-auto.small= file.file.timestamp.toDateString()
-                                                .ml-auto.small= file.file.assignment.due.toDateString()
+                                                .mr-auto.small(hoverData="Due: " + file.file.assignment.due.toDateString())= file.file.timestamp.toDateString()
                                         else
                                             .card-date.d-flex.card-date-done.bg-success
-                                                .mr-auto.small= file.file.timestamp.toDateString()
-                                                .ml-auto.small= file.file.assignment.due.toDateString()
+                                                .mr-auto.small(hoverData="Due: " + file.file.assignment.due.toDateString())= file.file.timestamp.toDateString()
                                     else
                                         .card-date.d-flex.card-date-done.bg-success
                                             .mr-auto.small= file.file.timestamp.toDateString()
@@ -53,7 +51,7 @@ block content
                     if !group.group && group.files.length > 0
                         +card-container()
                             for file in group.files
-                                +card()
+                                +card(class="hoverer")
                                     if file.file.assignment
                                         +card-simple(file.file.assignment.name, "/file/" + file.file._id)
                                             span= file.file.name
@@ -61,12 +59,10 @@ block content
                                         if file.file.assignment.typ != "open"
                                             if file.file.timestamp > file.file.assignment.due
                                                 .card-date.d-flex.card-date-done.bg-warning
-                                                    .mr-auto.small= file.file.timestamp.toDateString()
-                                                    .ml-auto.small= file.file.assignment.due.toDateString()
+                                                    .mr-auto.small(hoverData="Due: " + file.file.assignment.due.toDateString())= file.file.timestamp.toDateString()
                                             else
                                                 .card-date.d-flex.card-date-done.bg-success
-                                                    .mr-auto.small= file.file.timestamp.toDateString()
-                                                    .ml-auto.small= file.file.assignment.due.toDateString()
+                                                    .mr-auto.small(hoverData="Due: " + file.file.assignment.due.toDateString())= file.file.timestamp.toDateString()
                                         else
                                             .card-date.d-flex.card-date-done.bg-success
                                                 .mr-auto.small= file.file.timestamp.toDateString()

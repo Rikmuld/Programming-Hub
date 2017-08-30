@@ -15,4 +15,13 @@ function setUserResults(html, user) {
         setupTimeline($(this));
     });
     setupTooltipIn(par);
+    par.find(".card.hoverer").hover(function () {
+        $(this).children().find("[hoverData]").each(function () {
+            const hoverer = $(this);
+            const data = hoverer.attr("hoverData");
+            const text = hoverer.text();
+            hoverer.text(data);
+            hoverer.attr("hoverData", text);
+        });
+    });
 }

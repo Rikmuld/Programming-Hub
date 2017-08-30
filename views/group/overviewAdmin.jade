@@ -29,13 +29,19 @@ block groupContent
             p.lead#noAssignmentMessage(style="display:none") This course does not have any assignments!
             +card-container()
                 for ass in group.assignments
-                    +card()(id=ass._id)
+                    +card()(id=ass._id class="hoverer")
                         +card-simple(ass.name, group._id + "/assignment/" + ass._id)
-                        .card-date.text-center
-                            if ass.typ != "open"
-                                span.small= ass.due.toDateString()
-                            else 
-                                span.small#openExists Free Assignment
+                        .card-date-sepperator
+                        if ass.typ != "open"
+                            if new Date() < ass.due
+                                .card-date.d-flex.bg-primary
+                                    span.small(hoverData="Submissions: " + ass.files.length)= ass.due.toDateString()
+                            else
+                                .card-date.d-flex.bg-success
+                                    span.small(hoverData="Submissions: " + ass.files.length)= ass.due.toDateString()
+                        else
+                            .card-date.d-flex.bg-primary
+                                span.small#openExists(hoverData="Submissions: " + ass.files.length) Free Assignment
                         +card-icons()
                             a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
                                     span.oi.oi-list
