@@ -33,6 +33,7 @@ $(document).ready(function () {
             assignmentCreate.setProp("name", "disabled", false);
     });
     var nameValid = new Validator(ModalValidators.atLeast(8), "name");
+    var nameValid2 = new Validator(ModalValidators.equals("Free Assignment"), "name");
     var dueExists = new Validator(ModalValidators.exists(), "due");
     var dueValid = new Validator(ModalValidators.inbetweenDates(getStartDate(), getEndDate()), "due");
     var ifDue = new Validator(ModalValidators.ifValid(dueExists, dueValid), "due");
@@ -40,7 +41,7 @@ $(document).ready(function () {
     var ifLink = new Validator(ModalValidators.ifthen(function (s) { return s.length > 0; }, validURL), "link");
     var noOpen = new Validator(ModalValidators.idNotExists("openExists", "There can only be one open assignment per course!"), "type");
     var ifTypeDefined = new Validator(ModalValidators.ifthen(function (s) { return s == "defined"; }, nameValid, ifDue, ifLink), "type").disableErrors();
-    var ifTypeOpen = new Validator(ModalValidators.ifthen(function (s) { return s == "open"; }, nameValid, noOpen), "type").disableErrors();
+    var ifTypeOpen = new Validator(ModalValidators.ifthen(function (s) { return s == "open"; }, nameValid, nameValid2, noOpen), "type").disableErrors();
     assignmentCreate.addValidation(new Validator(ModalValidators.not("autograder", "The autograder type is not available for now!"), "type"));
     assignmentCreate.addValidation(ifTypeDefined);
     assignmentCreate.addValidation(ifTypeOpen);

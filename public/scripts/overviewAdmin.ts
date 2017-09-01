@@ -46,6 +46,7 @@ $(document).ready(() => {
     })
 
     const nameValid = new Validator(ModalValidators.atLeast(8), "name")
+    const nameValid2 = new Validator(ModalValidators.equals("Free Assignment"), "name")
 
     const dueExists = new Validator(ModalValidators.exists(), "due")
     const dueValid = new Validator(ModalValidators.inbetweenDates(getStartDate(), getEndDate()), "due")
@@ -57,7 +58,7 @@ $(document).ready(() => {
     const noOpen = new Validator(ModalValidators.idNotExists("openExists", "There can only be one open assignment per course!"), "type")
 
     const ifTypeDefined = new Validator(ModalValidators.ifthen(s => s == "defined", nameValid, ifDue, ifLink), "type").disableErrors()
-    const ifTypeOpen = new Validator(ModalValidators.ifthen(s => s == "open", nameValid, noOpen), "type").disableErrors()
+    const ifTypeOpen = new Validator(ModalValidators.ifthen(s => s == "open", nameValid, nameValid2, noOpen), "type").disableErrors()
 
     assignmentCreate.addValidation(new Validator(ModalValidators.not("autograder", "The autograder type is not available for now!"), "type"))
     assignmentCreate.addValidation(ifTypeDefined)
