@@ -14,7 +14,7 @@ block nav_right
     +navbar-a("/group/" + group._id, group.name)
 
     +navbar-dropdown-active("Feedback", "feedbackDropdown")
-        +dropdown-a("/group/" + group._id + "/feedback/latest", "Feedback Oldest Handin")
+        +dropdown-a("/group/" + group._id + "/feedback/latest", "Feedback Oldest Submission")
         +dropdown-a-active("/group/" + group._id + "/feedback", "Feedback List")
 
     +navbar-dropdown("Results", "resultsDropdown")
@@ -28,7 +28,7 @@ block headerTitle
 
 block groupContent
     .section-container
-        h2 Hand-ins
+        h2 Submissions
         - var allFiles = []
         for assignment in group.assignments
             - allFiles.push.apply(allFiles, assignment.files.filter(f => f.feedback.length == 0))
@@ -39,7 +39,7 @@ block groupContent
             +card-container
                 for file in allFiles
                     - var assignment = group.assignments.find(a => a._id == file.assignment)
-                    +card(class="hoverer")
+                    +card()
                         +card-simple(assignment.name, "/file/" + file._id)
                             span 
                                 |#{file.students[0].name} #{file.students[0].surename} 
@@ -51,13 +51,13 @@ block groupContent
                             if assignment.typ != "open"
                                 if file.timestamp > assignment.due
                                     .card-date.d-flex.card-date-done.bg-warning
-                                        .mr-auto.small(hoverData="Due: " + assignment.due.toDateString())= file.timestamp.toDateString()
+                                        .mr-auto.small= file.timestamp.toDateString()
                                 else
                                     .card-date.d-flex.card-date-done.bg-success
-                                        .mr-auto.small(hoverData="Due: " + assignment.due.toDateString())= file.timestamp.toDateString()
+                                        .mr-auto.small= file.timestamp.toDateString()
                             else
                                 .card-date.d-flex.card-date-done.bg-success
                                     .mr-auto.small= file.timestamp.toDateString()
                             +card-icons()
                                 a.btn.btn-primary.btn-card-icon(href="/file/" + file._id)
-                                    span.oi.oi-pencil
+                                    span.oi.oi-list

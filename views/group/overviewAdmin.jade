@@ -7,7 +7,7 @@ block nav_right
     +navbar-a-active("", group.name)
 
     +navbar-dropdown("Feedback", "feedbackDropdown")
-        +dropdown-a(group.id + "/feedback/latest", "Feedback Oldest Handin")
+        +dropdown-a(group.id + "/feedback/latest", "Feedback Oldest Submission")
         +dropdown-a(group.id + "/feedback", "Feedback List")
 
     +navbar-dropdown("Results", "resultsDropdown")
@@ -43,7 +43,7 @@ block groupContent
                             .card-date.d-flex.bg-primary
                                 span.small#openExists(hoverData="Submissions: " + ass.files.length) Free Assignment
                         +card-icons()
-                            a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
+                            a.btn.btn-primary.btn-card-icon.cpointer(href=group._id + "/assignment/" + ass._id)
                                     span.oi.oi-list
                             if ass.typ != "open"
                                 button.btn.btn-warning.btn-card-icon.cpointer(class="manipulate" data-toggle="modal" data-target="#editAssignment" target="#editAssignment" attr-data='{"assignment": "#{ass._id}", "name": "#{ass.name}", "link": "#{ass.link}", "type": "#{ass.typ}", "due": "#{ass.due}"}')
@@ -71,9 +71,9 @@ block groupContent
                         +card-simple(usr.name + " " + usr.surename, group._id + "/user/" + usr._id)
                         if usr._id != user.id
                             +card-icons()
-                                a.btn.btn-success.btn-card-icon.cpointer(href=group._id + "/user/" + usr._id)
+                                a.btn.btn-primary.btn-card-icon.cpointer(href=group._id + "/user/" + usr._id)
                                         span.oi.oi-list
-                                a.btn.btn-primary.btn-card-icon.cpointer(href="mailto:" + usr._id + "@student.utwente.nl")
+                                a.btn.btn-success.btn-card-icon.cpointer(href="mailto:" + usr._id + "@student.utwente.nl")
                                         span.oi.oi-envelope-open
                                 button.btn.btn-danger.btn-card-icon.cpointer(data-toggle="modal" data-target="#removeUser" class="manipulate" target="#removeUserName" text-data="#{usr.name} #{usr.surename}" attr-data='{"user": "#{usr._id}"}')
                                     span.oi.oi-trash

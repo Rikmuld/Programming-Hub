@@ -167,5 +167,5 @@ function usersGot(users: any[]) {
 function mailUsers(students: string) {
     const mailUsers = students.split(',').filter(s => otherUsers.findIndex(s2 => s2._id == s) == -1).map(s => s + "@student.utwente.nl,")
 
-    window.location.href = "mailto:" + mailUsers
+    window.location.href = "mailto:?bcc=" + mailUsers
 }

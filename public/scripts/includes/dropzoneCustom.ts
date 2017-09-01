@@ -4,7 +4,7 @@ let zone
 Dropzone.options.uploadedFiles = {
     createImageThumbnails: false,
     parallelUploads: 1,
-    maxFilesize: 1,
+    maxFilesize: 5,
     init: dropzoneInit,
     success: fileUploaded,
     error: fileError
