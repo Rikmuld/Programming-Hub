@@ -1,15 +1,15 @@
-$(document).ready(() => {
+$(document).ready(function () {
     $(".assignmentResultsGet").click(function () {
-        const assignment = $(this).attr('assignment');
-        const group = $(this).attr('group');
-        const hasData = $(".assignmentResultsSet[assignment='" + assignment + "']").html().length > 0;
+        var assignment = $(this).attr('assignment');
+        var group = $(this).attr('group');
+        var hasData = $(".assignmentResultsSet[assignment='" + assignment + "']").html().length > 0;
         if (!hasData)
             socket.emit("getAssignmentResults", group, assignment);
     });
     socket.on("assignmentResultsGot", setAssignmentResults);
 });
 function setAssignmentResults(html, assignment) {
-    const par = $(".assignmentResultsSet[assignment='" + assignment + "']");
+    var par = $(".assignmentResultsSet[assignment='" + assignment + "']");
     par.html(html);
     par.find(".timeline").each(function () {
         setupTimeline($(this));
@@ -17,9 +17,9 @@ function setAssignmentResults(html, assignment) {
     setupTooltipIn(par);
     par.find(".card.hoverer").hover(function () {
         $(this).children().find("[hoverData]").each(function () {
-            const hoverer = $(this);
-            const data = hoverer.attr("hoverData");
-            const text = hoverer.text();
+            var hoverer = $(this);
+            var data = hoverer.attr("hoverData");
+            var text = hoverer.text();
             hoverer.text(data);
             hoverer.attr("hoverData", text);
         });

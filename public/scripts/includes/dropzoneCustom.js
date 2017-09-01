@@ -1,8 +1,8 @@
-let zone;
+var zone;
 Dropzone.options.uploadedFiles = {
     createImageThumbnails: false,
     parallelUploads: 1,
-    maxFilesize: 1,
+    maxFilesize: 5,
     init: dropzoneInit,
     success: fileUploaded,
     error: fileError
@@ -12,7 +12,7 @@ function dropzoneInit() {
     zone.on("sending", sending);
 }
 function sending(file, xhr, formData) {
-    const ass = $("#uploadAssignment_title");
+    var ass = $("#uploadAssignment_title");
     formData.append("assignment", ass.attr("assignment"));
 }
 function fileUploaded(file, response) {
@@ -22,8 +22,8 @@ function fileUploaded(file, response) {
     else {
         $("#uploadAssignment .errorContainer").addClass("hidden");
         $("#uploadAssignment .errors").html("");
-        const files = $("#uploadedFilesList");
-        const li = document.createElement("li");
+        var files = $("#uploadedFilesList");
+        var li = document.createElement("li");
         li.innerText = file.name;
         li.classList.add("list-group-item");
         li.setAttribute("value", file.name);
@@ -38,7 +38,7 @@ function fileError(file, error) {
 }
 function showError(error) {
     $("#uploadAssignment .errorContainer").removeClass("hidden");
-    const li = document.createElement("li");
+    var li = document.createElement("li");
     li.innerText = error;
     $("#uploadAssignment .errors").append(li);
 }

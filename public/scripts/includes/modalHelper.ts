@@ -127,24 +127,30 @@ class ModalFormValidator {
     private errorContainer: any
 
     private successHandler: () => void
+    private button: JQuery
 
     constructor(id: string, send: string, receive: string, multiUse: boolean = false) {
         this.modal = $(id) as Modal
         this.sendId = send
+        this.button = this.modal.find(".modal-run")
 
         this.errorMessage = this.modal.find(".errors")
         this.errorContainer = this.modal.find(".errorContainer")
 
-        this.modal.find(".modal-run").click(() => this.run())
+        this.button.click(() => this.run())
         this.modal.on("show.bs.modal", () => this.modalOpened(multiUse))
         socket.on(receive, (success, error) => this.response(success, error))
     }
 
     private response(success: boolean, error?: any) {
         if (success) {
-            if(this.successHandler) this.successHandler()
+            if(this.successHandler){
+                this.stopRunning()
+                this.successHandler()
+            }
             else location.reload()
         } else {
+            this.stopRunning()
             this.showError()
             this.clearError()
             this.addError(fixError(error))
@@ -180,27 +186,44 @@ class ModalFormValidator {
     }
 
     run() {
-        const errors = []
+        if(!this.isRunning()) {
+            const errors = []
 
-        loop(this.fields.objs, (key, value: Field) => {
-            value.jq.removeClass("is-invalid")
-        })
+            loop(this.fields.objs, (key, value: Field) => {
+                value.jq.removeClass("is-invalid")
+            })
 
-        for (let val of this.validators) {
-            const error = val.exec(this)
-            if (error.length > 0) errors.push(...error)
+            for (let val of this.validators) {
+                const error = val.exec(this)
+                if (error.length > 0) errors.push(...error)
+            }
+
+            if (errors.length > 0) {
+                this.clearError()
+                this.showError()
+
+                errors.forEach((e) => this.addError(e))
+            } else {
+                this.hideError()
+
+                socket.emit(this.sendId, ...this.values, ...this.fields.values().map(f => f.value()))
+                this.setRunning()
+            }
         }
+    }
 
-        if (errors.length > 0) {
-            this.clearError()
-            this.showError()
+    setRunning() {
+        this.button.addClass("running")
+        this.button.prop("disabled", true)
+    }
 
-            errors.forEach((e) => this.addError(e))
-        } else {
-            this.hideError()
+    stopRunning() {
+        this.button.removeClass("running")
+        this.button.prop("disabled", false)
+    }
 
-            socket.emit(this.sendId, ...this.values, ...this.fields.values().map(f => f.value()))
-        }
+    isRunning() {
+        this.button.hasClass("running")
     }
 
     clearError() {

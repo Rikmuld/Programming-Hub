@@ -1,18 +1,18 @@
-$(document).ready(() => {
+$(document).ready(function () {
     $(".manipulate").click(handleData);
 });
 function handleData() {
-    const base = $(this);
-    const target = $(base.attr("target"));
-    const data = base.attr("attr-data");
-    const text = base.attr("text-data");
+    var base = $(this);
+    var target = $(base.attr("target"));
+    var data = base.attr("attr-data");
+    var text = base.attr("text-data");
     if (data && data.length > 0)
-        loop(JSON.parse(data), (key, value) => target.attr(key, value));
+        loop(JSON.parse(data), function (key, value) { return target.attr(key, value); });
     if (text && text.length > 0)
         target.text(text);
 }
 function loop(data, f) {
-    for (let key in data) {
+    for (var key in data) {
         if (data.hasOwnProperty(key)) {
             f(key, data[key]);
         }
@@ -28,206 +28,254 @@ function fixError(error) {
         return "An error occured, but it could not be displayed properly. See the console of the browser for more information.";
     }
 }
-class Dict {
-    constructor() {
+var Dict = (function () {
+    function Dict() {
         this.objs = {};
     }
-    put(id, a) {
+    Dict.prototype.put = function (id, a) {
         this.objs[id] = a;
-    }
-    get(id) {
+    };
+    Dict.prototype.get = function (id) {
         return this.objs[id];
-    }
-    keys() {
-        return this.toArr((key, value) => key);
-    }
-    values() {
-        return this.toArr((key, value) => value);
-    }
-    toArr(f) {
-        const collection = [];
-        loop(this.objs, (key, value) => {
+    };
+    Dict.prototype.keys = function () {
+        return this.toArr(function (key, value) { return key; });
+    };
+    Dict.prototype.values = function () {
+        return this.toArr(function (key, value) { return value; });
+    };
+    Dict.prototype.toArr = function (f) {
+        var collection = [];
+        loop(this.objs, function (key, value) {
             collection.push(f(key, value));
         });
         return collection;
-    }
-}
+    };
+    return Dict;
+}());
 //this way values are calculated way to often, just lazy and reset when renew
-class Field {
-    constructor(id, name, jq, value) {
+var Field = (function () {
+    function Field(id, name, jq, value) {
         this.id = id;
         this.name = name;
         this.jq = jq;
-        this.value = () => value(jq);
+        this.value = function () { return value(jq); };
         this.value_raw = value;
     }
-}
-class Validator {
-    constructor(f, ...targets) {
+    return Field;
+}());
+var Validator = (function () {
+    function Validator(f) {
+        var targets = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            targets[_i - 1] = arguments[_i];
+        }
         this.error = true;
         this.targets = targets;
         this.f = f;
     }
-    disableErrors() {
+    Validator.prototype.disableErrors = function () {
         this.error = false;
         return this;
-    }
-    exec(modal) {
-        const targets = this.targets.map(t => modal.fields.get(t));
-        const error = this.f(modal, ...targets);
+    };
+    Validator.prototype.exec = function (modal) {
+        var targets = this.targets.map(function (t) { return modal.fields.get(t); });
+        var error = this.f.apply(this, [modal].concat(targets));
         if (error.length > 0 && this.error)
-            targets.forEach(t => t.jq.addClass("is-invalid"));
+            targets.forEach(function (t) { return t.jq.addClass("is-invalid"); });
         return error;
-    }
-    static validate(modal, ...vals) {
-        const errors = [];
-        for (let val of vals) {
-            const error = val.exec(modal);
+    };
+    Validator.validate = function (modal) {
+        var vals = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            vals[_i - 1] = arguments[_i];
+        }
+        var errors = [];
+        for (var _a = 0, vals_1 = vals; _a < vals_1.length; _a++) {
+            var val = vals_1[_a];
+            var error = val.exec(modal);
             if (error.length > 0)
-                errors.push(...error);
+                errors.push.apply(errors, error);
         }
         return errors;
-    }
-}
-class ModalFormValidator {
-    constructor(id, send, receive, multiUse = false) {
+    };
+    return Validator;
+}());
+var ModalFormValidator = (function () {
+    function ModalFormValidator(id, send, receive, multiUse) {
+        if (multiUse === void 0) { multiUse = false; }
+        var _this = this;
         this.validators = [];
         this.values = [];
         this.fields = new Dict();
         this.openListners = [];
         this.modal = $(id);
         this.sendId = send;
+        this.button = this.modal.find(".modal-run");
         this.errorMessage = this.modal.find(".errors");
         this.errorContainer = this.modal.find(".errorContainer");
-        this.modal.find(".modal-run").click(() => this.run());
-        this.modal.on("show.bs.modal", () => this.modalOpened(multiUse));
-        socket.on(receive, (success, error) => this.response(success, error));
+        this.button.click(function () { return _this.run(); });
+        this.modal.on("show.bs.modal", function () { return _this.modalOpened(multiUse); });
+        socket.on(receive, function (success, error) { return _this.response(success, error); });
     }
-    response(success, error) {
+    ModalFormValidator.prototype.response = function (success, error) {
         if (success) {
-            if (this.successHandler)
+            if (this.successHandler) {
+                this.stopRunning();
                 this.successHandler();
+            }
             else
                 location.reload();
         }
         else {
+            this.stopRunning();
             this.showError();
             this.clearError();
             this.addError(fixError(error));
         }
-    }
-    modalOpened(multiUse) {
+    };
+    ModalFormValidator.prototype.modalOpened = function (multiUse) {
         if (multiUse) {
             this.clearError();
             this.hideError();
-            loop(this.fields.objs, (key, value) => {
+            loop(this.fields.objs, function (key, value) {
                 value.jq.removeClass("is-invalid");
             });
         }
-        const instance = this;
-        this.openListners.forEach(l => l(instance));
-    }
-    onOpen(f) {
+        var instance = this;
+        this.openListners.forEach(function (l) { return l(instance); });
+    };
+    ModalFormValidator.prototype.onOpen = function (f) {
         this.openListners.push(f);
-    }
-    copyFrom(other, id, validators = true) {
-        loop(other.fields.objs, (key, value) => {
-            this.registerField(key, value.name, "#" + id + value.id.substr(1), value.value_raw);
+    };
+    ModalFormValidator.prototype.copyFrom = function (other, id, validators) {
+        var _this = this;
+        if (validators === void 0) { validators = true; }
+        loop(other.fields.objs, function (key, value) {
+            _this.registerField(key, value.name, "#" + id + value.id.substr(1), value.value_raw);
         });
-        this.addValues(...other.values);
+        this.addValues.apply(this, other.values);
         if (validators)
-            for (let val of other.validators)
+            for (var _i = 0, _a = other.validators; _i < _a.length; _i++) {
+                var val = _a[_i];
                 this.addValidation(val);
-    }
-    run() {
-        const errors = [];
-        loop(this.fields.objs, (key, value) => {
-            value.jq.removeClass("is-invalid");
-        });
-        for (let val of this.validators) {
-            const error = val.exec(this);
-            if (error.length > 0)
-                errors.push(...error);
+            }
+    };
+    ModalFormValidator.prototype.run = function () {
+        var _this = this;
+        if (!this.isRunning()) {
+            var errors = [];
+            loop(this.fields.objs, function (key, value) {
+                value.jq.removeClass("is-invalid");
+            });
+            for (var _i = 0, _a = this.validators; _i < _a.length; _i++) {
+                var val = _a[_i];
+                var error = val.exec(this);
+                if (error.length > 0)
+                    errors.push.apply(errors, error);
+            }
+            if (errors.length > 0) {
+                this.clearError();
+                this.showError();
+                errors.forEach(function (e) { return _this.addError(e); });
+            }
+            else {
+                this.hideError();
+                socket.emit.apply(socket, [this.sendId].concat(this.values, this.fields.values().map(function (f) { return f.value(); })));
+                this.setRunning();
+            }
         }
-        if (errors.length > 0) {
-            this.clearError();
-            this.showError();
-            errors.forEach((e) => this.addError(e));
-        }
-        else {
-            this.hideError();
-            socket.emit(this.sendId, ...this.values, ...this.fields.values().map(f => f.value()));
-        }
-    }
-    clearError() {
+    };
+    ModalFormValidator.prototype.setRunning = function () {
+        this.button.addClass("running");
+        this.button.prop("disabled", true);
+    };
+    ModalFormValidator.prototype.stopRunning = function () {
+        this.button.removeClass("running");
+        this.button.prop("disabled", false);
+    };
+    ModalFormValidator.prototype.isRunning = function () {
+        this.button.hasClass("running");
+    };
+    ModalFormValidator.prototype.clearError = function () {
         this.errorMessage.html("");
-    }
-    showError() {
+    };
+    ModalFormValidator.prototype.showError = function () {
         this.errorContainer.removeClass("hidden");
-    }
-    hideError() {
+    };
+    ModalFormValidator.prototype.hideError = function () {
         this.errorContainer.addClass("hidden");
-    }
-    onChange(field, callback) {
-        this.fields.get(field).jq.on("input", (e) => {
-            callback(this.fields.get(field).value());
+    };
+    ModalFormValidator.prototype.onChange = function (field, callback) {
+        var _this = this;
+        this.fields.get(field).jq.on("input", function (e) {
+            callback(_this.fields.get(field).value());
         });
-    }
-    setAttribute(field, attribute, value) {
+    };
+    ModalFormValidator.prototype.setAttribute = function (field, attribute, value) {
         this.fields.get(field).jq.attr(attribute, value);
-    }
-    setProp(field, attribute, value) {
+    };
+    ModalFormValidator.prototype.setProp = function (field, attribute, value) {
         this.fields.get(field).jq.prop(attribute, value);
-    }
-    onSuccess(handler, reload = false) {
-        this.successHandler = () => {
-            this.close();
+    };
+    ModalFormValidator.prototype.onSuccess = function (handler, reload) {
+        var _this = this;
+        if (reload === void 0) { reload = false; }
+        this.successHandler = function () {
+            _this.close();
             handler();
             if (reload)
                 location.reload();
         };
-    }
-    close() {
+    };
+    ModalFormValidator.prototype.close = function () {
         this.modal.modal("hide");
-    }
-    addError(error) {
-        const li = document.createElement("li");
+    };
+    ModalFormValidator.prototype.addError = function (error) {
+        var li = document.createElement("li");
         li.innerText = error;
         this.errorMessage.append(li);
-    }
-    setTextValue(field, value) {
+    };
+    ModalFormValidator.prototype.setTextValue = function (field, value) {
         this.getJq(field).text(value);
-    }
-    setValue(field, value) {
+    };
+    ModalFormValidator.prototype.setValue = function (field, value) {
         this.getJq(field).val(value);
-    }
-    getValue(field) {
-        return this.actField(field, f => f.value());
-    }
-    getName(field) {
-        return this.actField(field, f => f.name);
-    }
-    getJq(field) {
-        return this.actField(field, f => f.jq);
-    }
-    actField(field, f) {
-        const val = this.fields.get(field);
+    };
+    ModalFormValidator.prototype.getValue = function (field) {
+        return this.actField(field, function (f) { return f.value(); });
+    };
+    ModalFormValidator.prototype.getName = function (field) {
+        return this.actField(field, function (f) { return f.name; });
+    };
+    ModalFormValidator.prototype.getJq = function (field) {
+        return this.actField(field, function (f) { return f.jq; });
+    };
+    ModalFormValidator.prototype.actField = function (field, f) {
+        var val = this.fields.get(field);
         if (val)
             return f(val);
         else
             "";
-    }
-    registerField(shortHand, name, id, value, insideModal = true) {
-        const jq = insideModal ? this.modal.find(id) : $(id);
+    };
+    ModalFormValidator.prototype.registerField = function (shortHand, name, id, value, insideModal) {
+        if (insideModal === void 0) { insideModal = true; }
+        var jq = insideModal ? this.modal.find(id) : $(id);
         this.fields.put(shortHand, new Field(id, name, jq, value));
-    }
-    addValues(...values) {
-        this.values.push(...values);
-    }
-    addValidation(valid) {
+    };
+    ModalFormValidator.prototype.addValues = function () {
+        var values = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            values[_i] = arguments[_i];
+        }
+        (_a = this.values).push.apply(_a, values);
+        var _a;
+    };
+    ModalFormValidator.prototype.addValidation = function (valid) {
         this.validators.push(valid);
-    }
-}
+    };
+    return ModalFormValidator;
+}());
 var ModalValues;
 (function (ModalValues) {
     function value(target) {
@@ -235,11 +283,11 @@ var ModalValues;
     }
     ModalValues.value = value;
     function attr(atr) {
-        return (target) => target.attr(atr);
+        return function (target) { return target.attr(atr); };
     }
     ModalValues.attr = attr;
     function date(target) {
-        const date = target.parent().datepicker("getDate");
+        var date = target.parent().datepicker("getDate");
         if (date)
             date.setTime(date.getTime() + (1000 * 60 * 60 * 24) - 1);
         return date;
@@ -249,8 +297,8 @@ var ModalValues;
 var ModalValidators;
 (function (ModalValidators) {
     function atLeast(length) {
-        return (modal, field) => {
-            const value = field.value();
+        return function (modal, field) {
+            var value = field.value();
             if (value.length >= length)
                 return [];
             else
@@ -259,8 +307,8 @@ var ModalValidators;
     }
     ModalValidators.atLeast = atLeast;
     function minSize(length) {
-        return (modal, field) => {
-            const value = field.value();
+        return function (modal, field) {
+            var value = field.value();
             console.log(value);
             if (value.length >= length)
                 return [];
@@ -269,10 +317,15 @@ var ModalValidators;
         };
     }
     ModalValidators.minSize = minSize;
-    function equals(...list) {
-        return (modal, field) => {
-            const value = field.value();
-            for (let val of list) {
+    function equals() {
+        var list = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            list[_i] = arguments[_i];
+        }
+        return function (modal, field) {
+            var value = field.value();
+            for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+                var val = list_1[_i];
                 if (value == val)
                     return [];
             }
@@ -281,8 +334,13 @@ var ModalValidators;
     }
     ModalValidators.equals = equals;
     function or(pred, error) {
-        return (modal, ...fields) => {
-            for (let field of fields) {
+        return function (modal) {
+            var fields = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                fields[_i - 1] = arguments[_i];
+            }
+            for (var _a = 0, fields_1 = fields; _a < fields_1.length; _a++) {
+                var field = fields_1[_a];
                 if (pred(field.value()))
                     return [];
             }
@@ -291,7 +349,7 @@ var ModalValidators;
     }
     ModalValidators.or = or;
     function exists() {
-        return (modal, field) => {
+        return function (modal, field) {
             if (!field.value())
                 return ["The " + field.name + " format is incorrect!"];
             else
@@ -300,7 +358,7 @@ var ModalValidators;
     }
     ModalValidators.exists = exists;
     function not(data, error) {
-        return (modal, field) => {
+        return function (modal, field) {
             if (field.value() == data)
                 return [error];
             else
@@ -308,29 +366,37 @@ var ModalValidators;
         };
     }
     ModalValidators.not = not;
-    function ifthen(pred, ...then) {
-        return (modal, field) => {
+    function ifthen(pred) {
+        var then = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            then[_i - 1] = arguments[_i];
+        }
+        return function (modal, field) {
             if (pred(field.value()))
-                return Validator.validate(modal, ...then);
+                return Validator.validate.apply(Validator, [modal].concat(then));
             else
                 return [];
         };
     }
     ModalValidators.ifthen = ifthen;
-    function ifValid(pred, ...then) {
-        return (modal, field) => {
-            const error = pred.exec(modal);
+    function ifValid(pred) {
+        var then = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            then[_i - 1] = arguments[_i];
+        }
+        return function (modal, field) {
+            var error = pred.exec(modal);
             if (error.length == 0)
-                return Validator.validate(modal, ...then);
+                return Validator.validate.apply(Validator, [modal].concat(then));
             else
                 return error;
         };
     }
     ModalValidators.ifValid = ifValid;
     function dateOrder() {
-        return (modal, start, end) => {
-            const startDate = start.value();
-            const endDate = end.value();
+        return function (modal, start, end) {
+            var startDate = start.value();
+            var endDate = end.value();
             if (!!startDate && !!endDate && startDate >= endDate)
                 return ["The " + start.name + " has to be before the " + end.name + "!"];
             else
@@ -339,8 +405,8 @@ var ModalValidators;
     }
     ModalValidators.dateOrder = dateOrder;
     function inbetweenDates(start, end) {
-        return (modal, date) => {
-            const dateDate = date.value();
+        return function (modal, date) {
+            var dateDate = date.value();
             console.log(dateDate);
             console.log(start);
             console.log(end);
@@ -354,7 +420,7 @@ var ModalValidators;
     }
     ModalValidators.inbetweenDates = inbetweenDates;
     function validURL() {
-        return (modal, field) => {
+        return function (modal, field) {
             if (!URLValid(field.value()))
                 return ["The url of " + field.name + " is not valid!"];
             else
@@ -363,7 +429,7 @@ var ModalValidators;
     }
     ModalValidators.validURL = validURL;
     function idNotExists(id, error) {
-        return (field) => {
+        return function (field) {
             if ($("#" + id).length > 0)
                 return [error];
             else
@@ -372,11 +438,11 @@ var ModalValidators;
     }
     ModalValidators.idNotExists = idNotExists;
     function dateDiff(begin, end) {
-        const diff = end.getTime() - begin.getTime();
+        var diff = end.getTime() - begin.getTime();
         return Math.floor(diff / (1000 * 3600 * 24));
     }
     function dateString(date, year) {
-        const str = (date.getDate()) + " " + months[date.getMonth()];
+        var str = (date.getDate()) + " " + months[date.getMonth()];
         if (year)
             return str + " " + date.getFullYear().toString().substr(2, 2);
         else
@@ -395,4 +461,4 @@ function URLValid(str) {
     else
         return true;
 }
-$(".date").datepicker().on('show.bs.modal', (event) => event.stopPropagation());
+$(".date").datepicker().on('show.bs.modal', function (event) { return event.stopPropagation(); });

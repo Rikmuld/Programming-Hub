@@ -1,6 +1,6 @@
 $(".collapse-button").click(function () {
-    const container = $(this).parent().parent();
-    setTimeout(() => {
+    var container = $(this).parent().parent();
+    setTimeout(function () {
         setupTooltipIn(container);
     }, 20);
 });

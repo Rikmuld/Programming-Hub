@@ -1,11 +1,11 @@
-$(document).ready(() => {
+$(document).ready(function () {
     $(".selectTrigger").change(function () { selectClicked($(this)); });
 });
 function selectClicked(select) {
-    const data = select.val();
-    const container = select.attr("container");
+    var data = select.val();
+    var container = select.attr("container");
     $(container).find(".selectActor").each(function () {
-        const actorId = $(this).attr("data");
+        var actorId = $(this).attr("data");
         if (actorId == data)
             $(this).removeClass("hidden");
         else

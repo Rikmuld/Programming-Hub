@@ -1,13 +1,13 @@
-const socket = io();
+var socket = io();
 $(document).ready(init);
 function init() {
     setupTooltipIn($("body"));
-    $(window).resize(() => setupTooltipIn($("body")));
+    $(window).resize(function () { return setupTooltipIn($("body")); });
     $(".card.hoverer").hover(function () {
         $(this).children().find("[hoverData]").each(function () {
-            const hoverer = $(this);
-            const data = hoverer.attr("hoverData");
-            const text = hoverer.text();
+            var hoverer = $(this);
+            var data = hoverer.attr("hoverData");
+            var text = hoverer.text();
             hoverer.text(data);
             hoverer.attr("hoverData", text);
         });
@@ -15,13 +15,13 @@ function init() {
 }
 function setupTooltipIn(container) {
     container.find(".card").each(function () {
-        const card = $(this);
-        const title = $(card.find('.card-title'));
-        const message = $(card.find('span'));
-        const hasMessage = message.length > 0;
-        const overflowTitle = title[0].scrollWidth > Math.ceil(title.innerWidth());
-        const overflowMessage = hasMessage && message.innerWidth() > Math.ceil(title.innerWidth());
-        const anycard = card;
+        var card = $(this);
+        var title = $(card.find('.card-title'));
+        var message = $(card.find('span'));
+        var hasMessage = message.length > 0;
+        var overflowTitle = title[0].scrollWidth > Math.ceil(title.innerWidth());
+        var overflowMessage = hasMessage && message.innerWidth() > Math.ceil(title.innerWidth());
+        var anycard = card;
         anycard.tooltip("dispose");
         if (overflowTitle && !overflowMessage) {
             anycard.tooltip({
@@ -36,7 +36,7 @@ function setupTooltipIn(container) {
         else if (overflowMessage && overflowTitle) {
             anycard.tooltip({
                 "html": true,
-                "title": `<p>${title.text()}</p><p class="mb-0">${message.text()}</p>`
+                "title": "<p>" + title.text() + "</p><p class=\"mb-0\">" + message.text() + "</p>"
             });
         }
     });
