@@ -12,6 +12,7 @@ import { Tuple } from '../../functional/Tuple'
 import { Mail } from '../../server/Mail'
 
 import { Files } from '../../database/tables/Files'
+import { Config } from '../Config'
 
 import * as express from "express"
 import * as azure from 'azure-storage'
@@ -392,7 +393,7 @@ export namespace Sockets {
                 const upload = (success) => {
                     if (!success) emitResult(false, "We were not able to validate your hand-in!")
                     else {
-                        const root = "https://atlasprogramming.file.core.windows.net/handins/"
+                        const root = "https://uct.file.core.windows.net/atlas-hub/"
                         const temp = mainRoot + '/temp/' + assignment + "/" + user.id + "/"
                         const zipName = user.id + "_" + handInName + ".zip"
                         let zipFail = false
@@ -420,15 +421,15 @@ export namespace Sockets {
 
                                     sendMails(id)
 
-                                    storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
-                                        storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+                                    storage.createDirectoryIfNotExists(Config.storage.files, "files", (error, resu, response) => {
+                                        storage.createDirectoryIfNotExists(Config.storage.files, "files/" + id, (error, resu, response) => {
 
                                             const fileToLink = (fileName: string) => new Future<string>((res, rej) => {
-                                                storage.createFileFromLocalFile("handins", "files/" + id, fileName, temp + fileName, (error, resu, response) => {
+                                                storage.createFileFromLocalFile(Config.storage.files, "files/" + id, fileName, temp + fileName, (error, resu, response) => {
                                                     if (error) rej(error.message)
                                                     else {
                                                         fs.unlink(temp + fileName)
-                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
+                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature(Config.storage.files, "files/" + id, fileName, {
                                                             AccessPolicy: {
                                                                 Permissions: "r",
                                                                 Expiry: azure.date.daysFromNow(3560)

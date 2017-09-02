@@ -11,6 +11,7 @@ const IOMap_1 = require("../../functional/IOMap");
 const Tuple_1 = require("../../functional/Tuple");
 const Mail_1 = require("../../server/Mail");
 const Files_1 = require("../../database/tables/Files");
+const Config_1 = require("../Config");
 const azure = require("azure-storage");
 const fs = require("fs");
 const archiver = require('archiver');
@@ -405,7 +406,7 @@ var Sockets;
                     if (!success)
                         emitResult(false, "We were not able to validate your hand-in!");
                     else {
-                        const root = "https://atlasprogramming.file.core.windows.net/handins/";
+                        const root = "https://uct.file.core.windows.net/atlas-hub/";
                         const temp = mainRoot + '/temp/' + assignment + "/" + user.id + "/";
                         const zipName = user.id + "_" + handInName + ".zip";
                         let zipFail = false;
@@ -428,15 +429,15 @@ var Sockets;
                                 Files_1.Files.instance.create(MkTables_1.MkTables.mkFile(assignment, handInName, students, [], comments)).then(file => {
                                     const id = file._id;
                                     sendMails(id);
-                                    storage.createDirectoryIfNotExists('handins', "files", (error, resu, response) => {
-                                        storage.createDirectoryIfNotExists('handins', "files/" + id, (error, resu, response) => {
+                                    storage.createDirectoryIfNotExists(Config_1.Config.storage.files, "files", (error, resu, response) => {
+                                        storage.createDirectoryIfNotExists(Config_1.Config.storage.files, "files/" + id, (error, resu, response) => {
                                             const fileToLink = (fileName) => new Future_1.Future((res, rej) => {
-                                                storage.createFileFromLocalFile("handins", "files/" + id, fileName, temp + fileName, (error, resu, response) => {
+                                                storage.createFileFromLocalFile(Config_1.Config.storage.files, "files/" + id, fileName, temp + fileName, (error, resu, response) => {
                                                     if (error)
                                                         rej(error.message);
                                                     else {
                                                         fs.unlink(temp + fileName);
-                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature("handins", "files/" + id, fileName, {
+                                                        res(root + "files/" + id + "/" + fileName + "?" + storage.generateSharedAccessSignature(Config_1.Config.storage.files, "files/" + id, fileName, {
                                                             AccessPolicy: {
                                                                 Permissions: "r",
                                                                 Expiry: azure.date.daysFromNow(3560)
