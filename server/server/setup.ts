@@ -70,7 +70,7 @@ export namespace Setup {
         return db
     }
 
-    const emailExclusions = ["rikmuld@gmail.com", "rikmuldjp@gmail.com", "ruudvandamme55@gmail.com"]
+    const emailExclusions = ["rikmuld@gmail.com", "rikmuldjp@gmail.com", "ruudvandamme55@gmail.com", "studentruudvandamme@gmail.com"]
 
     export function setupAuthGoogle(googleID: string, googleSecret: string) {
         const googleLogin = {
